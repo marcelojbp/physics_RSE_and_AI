@@ -1,0 +1,307 @@
+\section{Git: the safety net}
+% Block 4 of PLAN.md, 40 min, with a live demo.  Message: git is what makes it
+% safe to let an agent touch your files.  About nine commands; the agent may type
+% them, you read the diffs.
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Why git, and why now}
+  \begin{itemize}
+    \item An agent edits ten files in ten seconds
+    \item Without a record, you cannot see what changed, or go back
+    \item<2-> Git: a lab notebook for your code, with an undo button
+  \end{itemize}
+
+  \vspace{3ex}
+  \onslide<3->{\centering\ckeybox[0.75\linewidth]{Git is what makes it safe to let an agent
+    touch your files}\par}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Git in one picture}{A chain of snapshots}
+  \vspace{2ex}
+  \begin{center}
+    \begin{tikzpicture}[x=33mm]
+      \foreach \i/\h/\m in {0/3f2a91c/{Rabi oscillations},1/b71e04d/{Add analytic test},
+                           2/9c0d5e2/{Lindblad decay}} {
+        \node[commit] (c\i) at (\i,0) {};
+        \node[font=\scriptsize\ttfamily,text=unibasGrey,above=1.5mm of c\i] {\h};
+        \node[font=\scriptsize,below=1.5mm of c\i] {\m};
+      }
+      \draw[flow] (c0) -- (c1);
+      \draw[flow] (c1) -- (c2);
+      \onslide<4->{\node[font=\scriptsize\bfseries,text=unibasPetrol,right=4mm of c2] {main};}
+    \end{tikzpicture}
+  \end{center}
+  \vspace{1ex}
+
+  \begin{itemize}
+    \item A \emph{commit}: a snapshot of the whole project, with message, author and date
+    \item<2-> Identified by a \emph{hash}, e.g.\ \cmd{9c0d5e2}
+    \item<3-> Any snapshot can be inspected or restored at any time
+    \item<4-> \emph{Branch}: a name pointing to the latest commit of a line of work
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Three places for a change}
+  \vspace{2ex}
+  \begin{center}
+    \begin{tikzpicture}[node distance=24mm,
+        area/.style={box,minimum width=26mm,minimum height=11mm}]
+      \node[area] (w) {\textbf{Working folder}\\{\scriptsize what you edit}};
+      \node[area,right=of w] (s) {\textbf{Staging area}\\{\scriptsize next snapshot}};
+      \node[area=figModel,right=of s] (h) {\textbf{History}\\{\scriptsize commits}};
+      \draw[flow] ([yshift=2mm]w.east) -- node[above,font=\scriptsize\ttfamily] {git add} ([yshift=2mm]s.west);
+      \draw[flow] ([yshift=2mm]s.east) -- node[above,font=\scriptsize\ttfamily] {git commit} ([yshift=2mm]h.west);
+      \onslide<2->{\draw[flow] (h.south) -- ++(0,-7mm) -| node[pos=0.25,below,font=\scriptsize\ttfamily]
+        {git restore <file>} (w.south);}
+    \end{tikzpicture}
+  \end{center}
+  \vspace{4ex}
+
+  \begin{itemize}
+    \item You choose what goes into each snapshot
+    \item<2-> Unwanted edits in the working folder: restore the last snapshot
+    \item<3-> \cmd{git status} tells you where everything is; run it often
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{Your first repository}
+\begin{terminal}
+$ cd DrivenSpin
+$ git init                                  # start recording
+$ git status                                # what is new or changed?
+$ git add src/DrivenSpin.jl test/runtests.jl
+$ git commit -m "Rabi oscillations with analytic test"
+$ git log --oneline                         # the history so far
+3f2a91c Rabi oscillations with analytic test
+\end{terminal}
+  \begin{itemize}
+    \item<2-> The message says \emph{why}, not only what: you will read it in a year
+    \item<3-> Same commands on macOS, Windows and Linux
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Reading a diff}{The single most important skill of this afternoon}
+  \vspace{1ex}
+  \begin{diffblock}
+    \diffhead{\$ git diff}
+    \diffhead{--- a/src/DrivenSpin.jl}
+    \diffhead{+++ b/src/DrivenSpin.jl}
+    \diffhead{@@ -12,6 +12,6 @@ function hamiltonian($\Delta$, $\Omega$)}
+    \diffctx{\ \ \ \ $\sigma$x = [0 1; 1 0]}
+    \diffctx{\ \ \ \ $\sigma$z = [1 0; 0 -1]}
+    \diffdel{\ \ \ \ return $\Delta$/2*$\sigma$z + $\Omega$*$\sigma$x}
+    \diffadd{\ \ \ \ return $\Delta$/2*$\sigma$z + $\Omega$/2*$\sigma$x}
+    \diffctx{end}
+  \end{diffblock}
+  \vspace{2ex}
+
+  \begin{itemize}
+    \item \textcolor{unibasRed}{\cmd{-}} line removed, \textcolor{unibasPetrol}{\cmd{+}} line
+          added; \cmd{@@} says where
+    \item<2-> \cmd{git diff}: changes not yet staged; \cmd{git diff --staged}: what will be committed
+    \item<3-> VS Code shows the same, side by side (Source Control panel)
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Spot the problem}{A diff an agent might produce}
+  \vspace{1ex}
+  \begin{diffblock}
+    \diffhead{--- a/test/runtests.jl}
+    \diffhead{+++ b/test/runtests.jl}
+    \diffhead{@@ -14,3 +14,3 @@ @testset "Rabi" begin}
+    \diffdel{\ \ \ \ @test excited\_population(H, $\pi$/$\Omega$) $\approx$ 1.0}
+    \diffadd{\ \ \ \ @test excited\_population(H, $\pi$/$\Omega$) $\approx$ 1.0 atol=1.0}
+    \diffctx{end}
+  \end{diffblock}
+  \vspace{2ex}
+
+  \begin{itemize}
+    \item<2-> \cmd{atol=1.0}: any population between 0 and 2 now passes
+    \item<3-> The test is green and checks nothing
+    \item<4-> \term{Any change to a test needs a reason you accept}
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Undo}
+  \vspace{1ex}
+  \renewcommand{\arraystretch}{1.5}
+  \begin{tabularx}{\linewidth}{@{}X l@{}}
+    \toprule
+    \textbf{Situation} & \textbf{Command} \\
+    \midrule
+    Unwanted edits, not committed          & \cmd{git restore <file>} \\
+    \reveal<2>{Added to staging by mistake}  & \reveal<2>{\cmd{git restore --staged <file>}} \\
+    \reveal<3>{A bad commit}                 & \reveal<3>{\cmd{git revert <hash>}} \\
+    \bottomrule
+  \end{tabularx}
+
+  \vspace{2ex}
+  \begin{itemize}
+    \item<3-> \cmd{revert} adds a new commit that undoes the old one; history is kept
+    \item<4-> \cmd{git reset --hard}, \cmd{git push --force}: they destroy work.
+          Never let an agent run them without asking
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Branches: cheap experiments}
+  \vspace{2ex}
+  \begin{center}
+    \begin{tikzpicture}[x=24mm,y=11mm]
+      \node[commit] (a) at (0,0) {};
+      \node[commit] (b) at (1,0) {};
+      \node[commit] (c) at (2,0) {};
+      \node[font=\scriptsize\bfseries,text=unibasPetrol,left=3mm of a] {main};
+      \draw[flow] (a) -- (b); \draw[flow] (b) -- (c);
+      \onslide<2->{%
+        \node[branchcommit] (d) at (2,1) {};
+        \node[branchcommit] (e) at (3,1) {};
+        \draw[flow,draw=unibasTurquoise] (b) -- (d); \draw[flow,draw=unibasTurquoise] (d) -- (e);
+        \node[font=\scriptsize\bfseries,text=unibasTurquoise,above=2mm of e] {try-rk4};}
+      \onslide<3->{%
+        \node[commit] (f) at (4,0) {};
+        \draw[flow] (c) -- (f); \draw[flow,draw=unibasTurquoise] (e) -- (f);
+        \node[font=\scriptsize,below=1.5mm of f] {merge};}
+    \end{tikzpicture}
+  \end{center}
+  \vspace{1ex}
+
+  \begin{itemize}
+    \item<2-> \cmd{git switch -c try-rk4}: a new line of work; \cmd{main} stays untouched
+    \item<3-> It worked: \cmd{git switch main}, then \cmd{git merge try-rk4}
+    \item<4-> It did not: \cmd{git branch -D try-rk4}, and it never happened
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Remotes: GitHub}
+  \vspace{2ex}
+  \begin{center}
+    \begin{tikzpicture}[node distance=22mm]
+      \node[box] (me) {\textbf{Your laptop}\\{\scriptsize full history}};
+      \node[box=figModel,right=of me] (gh) {\textbf{GitHub}\\{\scriptsize full history}};
+      \node[box,right=of gh] (col) {\textbf{Colleague}\\{\scriptsize full history}};
+      \draw[flow] ([yshift=2mm]me.east) -- node[above,font=\scriptsize\ttfamily] {git push} ([yshift=2mm]gh.west);
+      \draw[flow] ([yshift=-2mm]gh.west) -- node[below,font=\scriptsize\ttfamily] {git pull} ([yshift=-2mm]me.east);
+      \draw[flow] (gh) -- node[above,font=\scriptsize\ttfamily] {git clone} (col);
+    \end{tikzpicture}
+  \end{center}
+  \vspace{2ex}
+
+  \begin{itemize}
+    \item Backup, sharing, and one place for the group's code
+    \item<2-> Login over SSH, set up in the installation guide
+    \item<3-> GitHub can run your tests on every push: after the break
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{What goes into git}
+  \begin{columns}[T]
+    \begin{column}{0.46\textwidth}
+      \textbf{Commit}
+      \begin{itemize}
+        \item Source, scripts, tests
+        \item \cmd{Project.toml}, \cmd{Manifest.toml}
+        \item \cmd{README.md}, \cmd{AGENTS.md}
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \textbf{Do not commit}
+      \begin{itemize}
+        \item Large raw data: archive it elsewhere
+        \item Generated plots and results
+        \item Passwords and API keys, \emph{ever}
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \vspace{1ex}
+\begin{onlyenv}<2->
+\begin{terminal}[title={\hfill\tiny\color{unibasGrey}\smallcapsline{.gitignore}}]
+data/
+plots/
+*.jld2
+\end{terminal}
+\end{onlyenv}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{Git with an agent}{Habits}
+  \begin{enumerate}
+    \item Commit before the agent starts: a clean point to return to
+    \item<2-> One task, one commit
+    \item<3-> Read the diff before every commit, tests first
+    \item<4-> Let the agent type the commands; you check the result
+  \end{enumerate}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{Let the agent keep the record}{Prompts that use git}
+\begin{prompt}
+Commit my manual changes before starting.
+\end{prompt}
+\begin{visibleenv}<2->
+\begin{prompt}
+Work in modular commits: one commit per change, with the tests passing at each.
+\end{prompt}
+\end{visibleenv}
+\begin{visibleenv}<3->
+\begin{terminal}
+$ git log --oneline
+e4b1a20 Add Ramsey sequence with fringe-frequency test
+7c93f01 Add Lindblad dissipator with trace and positivity tests
+51d0b8e Relabel plot axes in scripts/rabi.jl (manual changes)
+\end{terminal}
+\end{visibleenv}
+  \begin{itemize}
+    \item Your edits and the agent's never end up in the same commit
+    \item<2-> Each change can be reviewed, and reverted, on its own
+    \item<4-> You still read every one: \cmd{git show <hash>}
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{The agent wrecks the project}{Live demo}
+\begin{prompt}
+Refactor the whole project so that all parameters live in one struct.
+\end{prompt}
+\begin{onlyenv}<2->
+\begin{terminal}
+$ git status --short          # what did it touch?
+ M scripts/rabi.jl
+ M src/DrivenSpin.jl
+ M test/runtests.jl
+$ git diff --stat             # how much?
+$ git restore .               # back to the last commit
+\end{terminal}
+\end{onlyenv}
+  \begin{itemize}
+    \item<3-> Thirty seconds, nothing lost
+    \item<4-> \cmd{git restore .} discards \emph{all} uncommitted changes: check first
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{The commands you need}
+  \vspace{1ex}
+  \renewcommand{\arraystretch}{1.25}
+  \begin{tabularx}{\linewidth}{@{}l X@{}}
+    \toprule
+    \cmd{git clone <address>}   & copy a repository from GitHub \\
+    \cmd{git status}            & what changed? \\
+    \cmd{git diff}              & how exactly? \\
+    \cmd{git add <file>}        & put a change into the next snapshot \\
+    \cmd{git commit -m "why"}   & take the snapshot \\
+    \cmd{git log --oneline}     & the history \\
+    \cmd{git restore <file>}    & throw away uncommitted edits \\
+    \cmd{git switch -c <name>}  & start a branch \\
+    \cmd{git push} / \cmd{git pull} & sync with GitHub \\
+    \bottomrule
+  \end{tabularx}
+\end{frame}

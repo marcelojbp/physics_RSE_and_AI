@@ -1,0 +1,70 @@
+\maketitle
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Agents solve research problems}{Theoretical physics, October 2026}
+  \begin{itemize}
+    \item 50 unpublished problems, each about a day's work for a world expert
+    \item Agents get literature search and scripting, no human hints
+    \item<2-> Best agent: \term{98\,\% correct final answers}, under 3 USD per problem
+  \end{itemize}
+
+  \vspace{2ex}
+  \onslide<3->{\centering\ckeybox[0.62\linewidth]{No agent-led breakthrough yet}\par}
+
+  \slidecite{\citeTheoPhysEval}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Abundance outpaces verification}{Mathematics in the age of AI}
+  \vspace{2ex}
+  \begin{center}
+    \begin{minipage}{0.78\linewidth}
+      \large\rmfamily ``AI-generated proofs will accumulate faster than they can be
+      verified''
+      \par\vspace{0.8ex}\hfill\normalsize --- T.~Tao, ICM lecture (2026)
+    \end{minipage}
+  \end{center}
+  \vspace{2ex}
+
+  \begin{itemize}
+    \item From proof \emph{scarcity} to proof \emph{abundance}
+    \item Journals, peer review, careers: all built for scarcity
+    \item<2-> Physics is no different: code, numerics and derivations are now cheap
+  \end{itemize}
+
+  \slidecite{\citeTao}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{The thesis of this afternoon}
+  \vspace{4ex}
+  \begin{center}
+    \ckeybox[0.72\linewidth]{\large
+      AI makes code cheap.\\[0.4ex] Verification becomes the bottleneck.}
+  \end{center}
+  \vspace{3ex}
+
+  \begin{itemize}
+    \item<2-> So: invest in verification
+    \item<3-> Research software engineering (RSE): the practices that make research
+          code trustworthy
+    \item<4-> Version control, project structure, tests, automation
+    \item<5-> Invented for unreliable humans; they work just as well for agents
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Meet your new PhD student}{A useful mental model of an AI agent}
+  \begin{itemize}
+    \item \textbf{Fast}: a day of coding in a few minutes
+    \item \textbf{Eager}: rarely says ``I don't know''
+    \item \textbf{Overconfident}: right and wrong answers sound the same
+    \item \textbf{Forgetful}: remembers nothing from yesterday
+  \end{itemize}
+
+  \vspace{3ex}
+  \onslide<2->{\centering\ckeybox[0.7\linewidth]{You would not publish their code unchecked.\\
+    Supervise the agent the same way.}\par}
+\end{frame}
+
+\outlineslide

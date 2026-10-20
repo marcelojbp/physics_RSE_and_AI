@@ -1,0 +1,161 @@
+\section{How a large language model works}
+% Block 1 of PLAN.md, 20 min.  Message: an LLM is a very large fit that predicts
+% the next token; each property of that fit has a practical consequence.
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Text becomes tokens}{What the model actually sees}
+  \vspace{2ex}
+  \begin{center}
+    \begin{tikzpicture}[tok/.style={draw=unibasPetrol,line width=0.6pt,
+        rounded corners=1.5pt,inner sep=3pt,font=\small\ttfamily,
+        minimum height=5mm}, node distance=1.2mm]
+      \node[tok] (t1) {The};
+      \node[tok,right=of t1] (t2) {\textvisiblespace Rabi};
+      \node[tok,right=of t2] (t3) {\textvisiblespace frequency};
+      \node[tok,right=of t3] (t4) {\textvisiblespace is};
+      \node[tok,right=of t4] (t5) {\textvisiblespace 2};
+      \node[tok,right=of t5] (t6) {$\pi$};
+      \node[tok,right=of t6] (t7) {\textvisiblespace$\times$};
+      \node[tok,right=of t7] (t8) {\textvisiblespace 5};
+      \node[tok,right=of t8] (t9) {\textvisiblespace MHz};
+      \onslide<2->{%
+        \foreach \i/\n in {1/791,2/82341,3/11900,4/374,5/220,6/49345,7/25569,8/642,9/37594}
+          \node[below=1.5mm of t\i,font=\scriptsize\ttfamily,text=unibasGrey] {\n};}
+    \end{tikzpicture}
+  \end{center}
+  \vspace{1ex}
+
+  \begin{itemize}
+    \item<2-> Each token is an integer from a vocabulary of $\sim 10^5$
+          \hfill{\scriptsize\color{unibasGrey}(numbers illustrative)}
+    \item<3-> English: about $0.75$ words per token; code and \LaTeX{} need more
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{One job: predict the next token}
+  \begin{equation*}
+    p_\theta\left(x_{n+1} \,\middle|\, x_1, x_2, \ldots, x_n\right)
+  \end{equation*}
+
+  \begin{itemize}
+    \item $x_1, \ldots, x_n$: the tokens so far, called the \emph{context}
+    \item $p_\theta$: a probability distribution over the whole vocabulary
+    \item<2-> $\theta$: the parameters of a neural network (a \emph{transformer}),
+          $\sim 10^{11}$--$10^{12}$ of them
+    \item<3-> Nothing else: no database lookup, no symbolic engine, no physics module
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Generation is a loop}{Sample, append, repeat}
+  \vspace{1ex}
+  \begin{center}
+    \begin{tikzpicture}[node distance=9mm]
+      \node[box] (ctx) {\textbf{Context}\\ \ttfamily The Rabi frequency is};
+      \node[box=figModel,right=of ctx] (net) {\textbf{Network} $p_\theta$};
+      \node[box,right=of net] (smp) {\textbf{Sample}\\ \ttfamily\textvisiblespace 2};
+      \draw[flow] (ctx) -- (net);
+      \draw[flow] (net) -- (smp);
+      \onslide<2->{\draw[flow] (smp.south) -- ++(0,-8mm) -| node[lbl,pos=0.25,below]
+        {append the new token to the context} (ctx.south);}
+    \end{tikzpicture}
+  \end{center}
+  \vspace{1ex}
+
+  \begin{itemize}
+    \item<2-> A long answer is thousands of passes through the loop
+    \item<3-> In each pass, the context is all the model has to work with
+    \item<4-> It cannot go back and revise a token, only write more
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Training is a very large fit}{Pre-training}
+  \begin{equation*}
+    \mathcal{L}(\theta) = -\sum_{n} \ln p_\theta\left(x_{n+1} \,\middle|\, x_1, \ldots, x_n\right)
+  \end{equation*}
+
+  \begin{itemize}
+    \item Minimise $\mathcal{L}$ over $\sim 10^{13}$ tokens: web, books, code, arXiv
+    \item<2-> Think of a least-squares fit with $10^{12}$ free parameters
+    \item<3-> Result: a compressed, lossy model of everything written, physics included
+    \item<4-> It learns what text \emph{looks like}, not what is true
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{From text model to assistant}{Post-training}
+  \begin{enumerate}
+    \item \textbf{Pre-training}: continues any text; not yet an assistant
+    \item<2-> \textbf{Instruction tuning}: imitates examples of good answers
+    \item<3-> \textbf{Human feedback}: people rank answers; the model is trained
+          towards the preferred ones (reinforcement learning from human feedback, RLHF)
+    \item<4-> \textbf{Verifiable rewards}: maths with known answers, code that passes
+          tests; this is where ``reasoning'' comes from
+  \end{enumerate}
+
+  \vspace{2ex}
+  \onslide<5->{\centering\ckeybox[0.78\linewidth]{Rewarded for answers that
+    \emph{look good to people} and \emph{pass checks}}\par}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{What follows from the training}
+  \vspace{2ex}
+  \renewcommand{\arraystretch}{1.6}
+  \begin{tabularx}{\linewidth}{@{}p{0.36\linewidth}X@{}}
+    \toprule
+    \textbf{Property} & \textbf{Consequence for you} \\
+    \midrule
+    Trained to sound plausible
+      & Right and wrong look the same; references get invented \\
+    \reveal<2>{Trained to please (\emph{sycophancy})}
+      & \reveal<2>{It agrees with you: ask it to find the flaw instead} \\
+    \reveal<3>{Rewarded for passing checks}
+      & \reveal<3>{It may weaken the check: read every change to a test} \\
+    \bottomrule
+  \end{tabularx}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{What follows from the architecture}
+  \vspace{2ex}
+  \renewcommand{\arraystretch}{1.6}
+  \begin{tabularx}{\linewidth}{@{}p{0.36\linewidth}X@{}}
+    \toprule
+    \textbf{Property} & \textbf{Consequence for you} \\
+    \midrule
+    Random sampling
+      & Same question, different answers: re-run and compare \\
+    \reveal<2>{No memory between sessions}
+      & \reveal<2>{Write things down: notes, instruction files, git history} \\
+    \reveal<3>{Finite context}
+      & \reveal<3>{What you put in decides what comes out} \\
+    \bottomrule
+  \end{tabularx}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{Knowledge has a cutoff and a bias}{Julia is a minority language}
+\begin{prompt}
+Solve the master equation of a driven, decaying qubit with QuantumOptics.jl
+\end{prompt}
+\begin{julia}
+using QuantumOptics
+b  = SpinBasis(1//2)                   # |e⟩ = spin up, |g⟩ = spin down
+Δ, Ω, Γ₁ = 0.0, 2π, 0.1                # rad/μs
+H  = Δ/2*sigmaz(b) + Ω/2*sigmax(b)
+ρ0 = dm(spindown(b))                   # start in |g⟩
+ρt = mesolve(H, ρ0, 0:0.01:10, [sqrt(Γ₁)*sigmam(b)])   # QuTiP (Python) name
+\end{julia}
+\begin{onlyenv}<2->
+\begin{julia}
+tout, ρt = timeevolution.master(0:0.01:10, ρ0, H, [sqrt(Γ₁)*sigmam(b)])   # Julia
+\end{julia}
+\end{onlyenv}
+  \begin{itemize}
+    \item<3-> Far less Julia than Python in the training data: Python habits leak in
+    \item<4-> Package interfaces change after the training cutoff
+  \end{itemize}
+\end{frame}

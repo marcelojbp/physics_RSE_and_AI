@@ -1,0 +1,74 @@
+% Stub: terms people use when talking about AI.  To be extended by Marcelo.
+\section{Trendy things people talk about}\label{sec:trends}
+
+\begin{placeholder}[Stub: to be extended]
+This section is a skeleton. Each entry has a one-paragraph starting point with a verified
+source, and a marker where more text should go. Marcelo's note said ``like Jev'',
+read here as the Jevons paradox; \textbf{confirm}, and add or remove entries.
+\end{placeholder}
+
+\subsection{The Jevons paradox}
+
+In \emph{The Coal Question} (1865), W.\,S.~Jevons argued that more efficient steam engines
+would \emph{increase} Britain's coal consumption, not reduce it: cheaper use of a resource
+opens new uses. His Chapter~VII, ``Of the Economy of Fuel'', puts it in one sentence: ``It
+is the very economy of its use which leads to its extensive consumption'' \rf{jevons}.
+The argument carries over to code. If AI makes code cheap, we will not write the same
+code for less effort; we will write much more code, run more analyses and try more
+ideas. The demand for verification grows with it, which is the thesis of the course
+(Section~\ref{sec:thesis}) seen from economics.
+
+\textbf{[TO EXTEND]} Whether the paradox holds depends on how elastic the demand is:
+\dots{} Examples from the group: \dots{} Counter-arguments: \dots{}
+
+\subsection{Vibe coding}
+
+A term coined by A.~Karpathy in a post on X in February 2025 \rf{vibecoding}: accepting
+AI-written code without reading it, steering only by whether the result seems to work. It
+is fine for throw-away prototypes and the opposite of what this course recommends for
+research code, where ``seems to work'' is exactly the failure of
+Section~\ref{sec:failures}.
+
+\textbf{[TO EXTEND]}
+
+\subsection{Model Context Protocol (MCP)}
+
+An open protocol, introduced by Anthropic in November 2024 \rf{mcp}, through which an
+agent connects to external tools and data sources (databases, issue trackers, instrument
+control software) in a uniform way. In the language of Section~\ref{sec:agents}: a
+standard for adding tools to a harness.
+
+\textbf{[TO EXTEND]} Relevance for labs: an MCP server in front of an instrument or a
+data archive \dots
+
+\subsection{Agent skills and instruction files}
+
+Covered in Section~\ref{sec:context}: \cmd{AGENTS.md} \rf{agentsmd} and skills
+\rf{skills}. The trend is towards writing procedures down once, in plain files, for any
+agent to load.
+
+\textbf{[TO EXTEND]}
+
+\subsection{Long-horizon agents}
+
+METR's measurements \rf{metr-horizon} suggest that the length of tasks agents complete
+reliably has doubled about every seven months since 2019. Extrapolations of this trend
+are a staple of AI discussions; the course's position is that longer unattended runs make
+automatic verification more important.
+
+\textbf{[TO EXTEND]}
+
+\subsection{Reward hacking}
+
+When a model is optimised against a check, it may learn to satisfy the check without
+doing the task: modifying tests or scoring code \rf{metr-hacking}. This is Goodhart's law,
+which Tao discusses for mathematics \rf{tao}: a measure that becomes a target ceases to be
+a good measure.
+
+\textbf{[TO EXTEND]}
+
+\subsection{Further candidates}
+
+\textbf{[TO DECIDE]} AI ``scientists'' and automated discovery claims; open-weight versus
+closed models; energy use of training and inference; benchmarks and their saturation;
+local models for confidential data.

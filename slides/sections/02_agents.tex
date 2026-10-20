@@ -1,0 +1,143 @@
+\section{Chatbots and agents}
+% Block 2 of PLAN.md, 25 min, with a live demo.  Message: an agent is a model in
+% a harness that lets it act and see the results; it can check its work against
+% reality, a chatbot cannot.
+
+% ------------------------------------------------------------------------------
+\begin{frame}{A chatbot: you are the loop}
+  \vspace{1ex}
+  \begin{center}
+    \begin{tikzpicture}[node distance=30mm]
+      \node[box=figModel,minimum height=12mm] (llm) {\textbf{Model}\\in the browser};
+      \node[box=figHuman,minimum height=12mm,right=of llm] (you) {\textbf{You}};
+      \node[box=figTool,minimum height=12mm,right=of you] (pc) {\textbf{Your computer}\\Julia, files, data};
+      \draw[flow] ([yshift=3mm]you.west) -- node[lbl,above] {question, code} ([yshift=3mm]llm.east);
+      \draw[flow] ([yshift=-3mm]llm.east) -- node[lbl,below] {answer, code} ([yshift=-3mm]you.west);
+      \onslide<2->{%
+      \draw[flow] ([yshift=3mm]you.east) -- node[lbl,above] {copy, run} ([yshift=3mm]pc.west);
+      \draw[flow] ([yshift=-3mm]pc.west) -- node[lbl,below] {error message} ([yshift=-3mm]you.east);}
+    \end{tikzpicture}
+  \end{center}
+  \vspace{2ex}
+
+  \begin{itemize}
+    \item The model never runs anything: it only sees what you paste
+    \item<2-> You carry code and errors back and forth
+    \item<3-> Fine for questions; slow and error-prone for a project
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{An agent: the loop closes}{Model + harness}
+  \vspace{1ex}
+  \begin{center}
+    \begin{tikzpicture}[node distance=10mm]
+      \node[box=figHuman] (you) {\textbf{You}};
+      \node[box=figModel,right=12mm of you] (llm) {\textbf{Model}};
+      \node[box=figTool,right=22mm of llm,text width=30mm] (tools)
+        {\textbf{Tools}\\ read and edit files\\ run commands\\ search the web};
+      \draw[flow] (you) -- node[lbl,above] {task} (llm);
+      \draw[flow] ([yshift=3mm]llm.east) -- node[lbl,above] {tool call} ([yshift=3mm]tools.west);
+      \draw[flow] ([yshift=-3mm]tools.west) -- node[lbl,below] {result} ([yshift=-3mm]llm.east);
+      \onslide<3->{%
+      \node[draw=unibasGrey,dashed,rounded corners=3pt,inner sep=6pt,
+            fit=(llm)(tools),label={[lbl]below:harness}] {};}
+    \end{tikzpicture}
+  \end{center}
+  \vspace{1ex}
+
+  \begin{itemize}
+    \item<2-> The model asks for actions; the results go back into its context
+    \item<3-> \emph{Harness}: the program around the model that runs the tools,
+          the loop and the context
+    \item<4-> You give the task, approve actions, and \term{review the result}
+  \end{itemize}
+
+  \slidecite{\citeTheoPhysEval\\ \citeAgents}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{What the loop looks like}{One task, four tool calls}
+\begin{prompt}
+Run the tests and fix what fails.
+\end{prompt}
+\begin{agentlog}
+● Run   julia --project -e 'using Pkg; Pkg.test()'
+  └ Test Failed at test/runtests.jl:14
+      Expression: excited_population(H, π/Ω) ≈ 1.0
+       Evaluated: 0.0 ≈ 1.0
+● Read  src/DrivenSpin.jl
+● Edit  src/DrivenSpin.jl:   H = Δ/2*σz + Ω*σx   →   H = Δ/2*σz + Ω/2*σx
+● Run   julia --project -e 'using Pkg; Pkg.test()'
+  └ Test Summary: | Pass  Total
+    DrivenSpin    |    6      6
+\end{agentlog}
+  \begin{itemize}
+    \item<2-> A $\pi$-pulse at resonance must invert the spin: the test encodes physics
+    \item<3-> The agent found and fixed the factor of 2 \emph{because a test existed}
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Chatbot or agent}
+  \vspace{1ex}
+  \renewcommand{\arraystretch}{1.5}
+  \begin{tabularx}{\linewidth}{@{}l X X@{}}
+    \toprule
+    & \textbf{Chatbot} & \textbf{Agent} \\
+    \midrule
+    Runs the code       & you                     & the agent \\
+    Sees the errors     & if you paste them       & directly \\
+    Knows your project  & what you paste          & reads the files \\
+    Can break things    & no                      & \term{yes}: edits, deletes, runs \\
+    \bottomrule
+  \end{tabularx}
+
+  \vspace{3ex}
+  \onslide<2->{\centering\ckeybox[0.75\linewidth]{An agent can check its work against
+    reality,\\ if you give it something to check against}\par}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{You set the leash}{Permissions}
+  \begin{itemize}
+    \item Agents ask before editing a file or running a command
+    \item You can allow more: all edits, or certain commands (\cmd{julia}, \cmd{git status})
+    \item<2-> Never auto-approve deleting, overwriting or anything outside the project
+    \item<3-> Read what you approve; ``yes, yes, yes'' is not supervision
+  \end{itemize}
+
+  \vspace{3ex}
+  \onslide<4->{\centering\ckeybox[0.6\linewidth]{Git makes a longer leash safe}\par}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{Same task, two ways}{Live demo}
+\begin{prompt}
+Simulate Rabi oscillations of a driven two-level system in Julia.
+Use H = (Δ/2)σz + (Ω/2)σx with ħ = 1, start in the ground state, and plot
+the excited-state population for Δ = 0 and Δ = Ω over three Rabi periods.
+Check the result against the analytic Rabi formula.
+\end{prompt}
+  \begin{itemize}
+    \item<2-> \textbf{Chatbot}: copy the code, run it, paste the error back, repeat
+    \item<3-> \textbf{Agent}: writes the files, runs Julia, reads the error, fixes, plots
+    \item<4-> Watch for: what did it check, and what did it \emph{not} check?
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Beyond code}{Always ask for something you can verify}
+  \vspace{1ex}
+  \renewcommand{\arraystretch}{1.5}
+  \begin{tabularx}{\linewidth}{@{}l X@{}}
+    \toprule
+    \textbf{Task} & \textbf{Verifiable output} \\
+    \midrule
+    Literature search & Links you open; the paper exists and says that \\
+    \reveal<2>{Derivation}    & \reveal<2>{A script that checks it numerically or symbolically} \\
+    \reveal<3>{Data analysis} & \reveal<3>{A script in the repository, not a number in a chat} \\
+    \reveal<4>{Writing}       & \reveal<4>{Text you have read and can defend line by line} \\
+    \bottomrule
+  \end{tabularx}
+\end{frame}

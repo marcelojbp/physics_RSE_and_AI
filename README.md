@@ -28,13 +28,18 @@ Julia packages compile.
 | Folder | Content | Status |
 |---|---|---|
 | [`setup/`](setup/) | Installation guide (PDF and LaTeX source) and `setup_julia.jl` | Ready |
-| [`slides/`](slides/) | Course slides | Not published yet |
-| [`DrivenSpin/`](DrivenSpin/) | Hands-on Julia project | Not published yet |
-| [`handout/`](handout/) | Summary and references to keep | Not published yet |
+| [`slides/`](slides/) | Course slides ([PDF](slides/main.pdf)) and Beamer source | Draft |
+| [`DrivenSpin/`](DrivenSpin/) | Hands-on Julia project, stage 1, with the [exercises](DrivenSpin/exercises/README.md) | Ready |
+| [`handout/`](handout/) | Course notes: background per block, git cheat sheet, verification checklist, annotated references ([PDF](handout/notes.pdf)) | Draft |
 
-Until `DrivenSpin/` is published, `setup_julia.jl` skips its last step and ends with
-"Packages ready, but the hands-on project was not prepared". That is expected. Run
-`git pull` and the script again once the project is here.
+If you ran `setup_julia.jl` before `DrivenSpin/` was published, it ended with
+"Packages ready, but the hands-on project was not prepared". Update your copy and run
+it again; it now installs the project's exact package versions and runs its tests:
+
+```bash
+git pull
+julia setup/setup_julia.jl
+```
 
 ## License
 

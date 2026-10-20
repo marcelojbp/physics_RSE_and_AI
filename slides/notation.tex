@@ -1,0 +1,82 @@
+% -----------------------------------------------------------------------------
+% Notation and helpers for "AI for Physics Projects".
+% Physics conventions follow PLAN.md, section 5: hbar = 1, basis (|e>, |g>),
+% H = (Delta/2) sigma_z + (Omega/2) sigma_x, Delta = omega_q - omega_d.
+% -----------------------------------------------------------------------------
+\usepackage{braket}
+\usepackage{tabularx}
+
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\ee}{\mathrm{e}}
+\newcommand{\tr}{\mathrm{tr}}
+
+% Driven spin
+\newcommand{\Pe}{P_e}
+\newcommand{\OmR}{\Omega_{\mathrm{R}}}
+
+% -----------------------------------------------------------------------------
+% Drawing helpers
+% -----------------------------------------------------------------------------
+\usetikzlibrary{calc,arrows.meta,positioning,shapes.geometric,fit}
+
+% Schematic boxes: what the human does, what the model does, what the tools do.
+% Colour encodes the actor and keeps the same meaning across the whole deck.
+\colorlet{figHuman}{unibasAnthracite}
+\colorlet{figModel}{unibasPetrol}
+\colorlet{figTool}{unibasTurquoise}
+
+\tikzset{
+  box/.style={draw=#1,line width=0.8pt,rounded corners=2pt,align=center,
+              inner sep=4pt,font=\footnotesize,text=unibasAnthracite},
+  box/.default=unibasAnthracite,
+  flow/.style={-{Stealth[length=5pt]},line width=0.8pt,draw=unibasAnthracite},
+  lbl/.style={font=\scriptsize,text=unibasGrey},
+  commit/.style={circle,draw=unibasPetrol,fill=unibasPetrol,inner sep=2.2pt},
+  st/.style={box=#1,minimum width=19mm,minimum height=9mm},
+  branchcommit/.style={circle,draw=unibasTurquoise,fill=unibasTurquoise,inner sep=2.2pt},
+}
+
+% \fitfig[<max height as fraction of \textheight>]{file}: a figure scaled to the
+% column width that never grows past the given height.
+\newcommand{\fitfig}[2][0.62]{%
+  \includegraphics[width=\linewidth,height=#1\textheight,keepaspectratio]{#2}}
+
+% -----------------------------------------------------------------------------
+% Diffs: set line by line, so that removed and added lines carry the colours
+% of a real diff viewer.  Arguments are ordinary LaTeX (use maths for Greek).
+% -----------------------------------------------------------------------------
+\newcommand{\diffhead}[1]{{\color{unibasGrey}\texttt{#1}}\\}
+\newcommand{\diffctx}[1]{\texttt{\phantom{+}\,#1}\\}
+\newcommand{\diffdel}[1]{\colorbox{unibasRed!10}{\makebox[0.92\linewidth][l]{\texttt{\color{unibasRed}-\,#1}}}\\}
+\newcommand{\diffadd}[1]{\colorbox{unibasTurquoise!15}{\makebox[0.92\linewidth][l]{\texttt{\color{unibasPetrol}+\,#1}}}\\}
+\newenvironment{diffblock}{%
+  \par\scriptsize\setlength{\fboxsep}{1pt}\setlength{\parindent}{0pt}%
+  \begin{minipage}{\linewidth}}{\end{minipage}\par}
+
+% Inline command or file name
+\newcommand{\cmd}[1]{\texttt{#1}}
+
+% Course resources (verified; see PLAN.md section 8)
+\newcommand{\citeTheoPhysEval}{A.~Ramesh~Chandra et al.\ \emph{TheoPhysEval:
+  Assessing AI agents at autonomous theoretical physics problem solving},
+  arXiv:2610.16733 (2026)}
+\newcommand{\citeTao}{T.~Tao, \emph{Mathematics in the age of AI},
+  arXiv:2608.16753 (2026)}
+\newcommand{\citeMETR}{J.~Becker et al.\ \emph{Measuring the impact of early-2025
+  AI on experienced open-source developer productivity}, arXiv:2507.09089 (2025)}
+\newcommand{\citeContextRot}{K.~Hong, A.~Troynikov, J.~Huber, \emph{Context rot:
+  How increasing input tokens impacts LLM performance}, Chroma technical report (2025)}
+\newcommand{\citeAgents}{E.~Schluntz, B.~Zhang, \emph{Building effective agents},
+  Anthropic engineering blog (2024)}
+\newcommand{\citeWilson}{G.~Wilson et al.\ \emph{Good enough practices in scientific
+  computing}, PLOS Comput.\ Biol.\ \textbf{13}, e1005510 (2017)}
+
+% \ckeybox[<width>]{...}: the theme's \keybox with centred lines, for a
+% statement that stands alone on the slide.
+\newcommand{\ckeybox}[2][\linewidth]{%
+  \begin{tikzpicture}
+    \node[draw=unibasRed,line width=0.5pt,rounded corners=1.5pt,
+          inner sep=5pt,text width=#1-12pt,align=center]
+      {\usebeamercolor[fg]{normal text}#2};
+  \end{tikzpicture}%
+}

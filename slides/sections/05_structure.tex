@@ -1,0 +1,263 @@
+% ------------------------------------------------------------------------------
+% Part 2 (after the break): blocks 5-8 of PLAN.md.
+% ------------------------------------------------------------------------------
+\sectionslide[15 minutes]{Break}
+
+\section{Project structure, tests and CI}
+% Block 5 of PLAN.md, 30 min.  Message: a fixed layout, a pinned environment and
+% results tagged with their commit make every number traceable; tests and CI
+% check it automatically.  Walk through DrivenSpin/ in VS Code alongside.
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Which code made Figure 3?}
+  \begin{itemize}
+    \item \cmd{fit\_final\_v2\_REALLY.m}, \cmd{analysis\_new.jl}, \cmd{old/}
+    \item Parameters edited by hand before each run
+    \item<2-> ``It worked on my laptop last spring''
+    \item<3-> An agent multiplies the files, and the confusion
+  \end{itemize}
+
+  \vspace{3ex}
+  \onslide<4->{\centering\ckeybox[0.72\linewidth]{Goal: for every figure, you can say
+    which code, data and parameters made it}\par}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{One layout for every project}{DrWatson}
+\begin{terminal}[title={\hfill\tiny\color{unibasGrey}\smallcapsline{julia> using DrWatson; initialize\_project("DrivenSpin")}}]
+DrivenSpin/
+|-- src/            # the physics: functions, no hard-coded parameters
+|-- scripts/        # short runs that call src/ and save results
+|-- test/           # runtests.jl: the physics checks
+|-- data/
+|   |-- exp_raw/    # measurements: read-only, never modified
+|   |-- exp_pro/    # processed data
+|   `-- sims/       # simulation results (generated)
+|-- plots/          # figures (generated)
+|-- Project.toml    # dependencies
+|-- Manifest.toml   # exact versions
+`-- AGENTS.md       # instructions for the agent
+\end{terminal}
+  \begin{itemize}
+    \item<2-> Same layout everywhere: you, your colleagues and the agent know where things go
+    \item<3-> Generated files can always be regenerated, so they stay out of git
+  \end{itemize}
+
+  \slidecite{G.~Datseris et al.\ \emph{DrWatson: the perfect sidekick for your scientific
+    inquiries}, J.~Open Source Softw.\ \textbf{5}, 2673 (2020)}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{The code is one part of the project}
+\begin{terminal}
+SpinProject/                  # everything about one research project
+|-- DrivenSpin/               # the code: its own git repository
+|   |-- .git/
+|   `-- src/ scripts/ test/ data/ ...
+|-- paper/                    # the manuscript: its own repository (e.g. Overleaf)
+|-- notes/                    # derivations, meeting notes
+`-- talks/
+\end{terminal}
+  \begin{itemize}
+    \item<2-> The code gets its own repository: shared, tested and published on its own
+    \item<3-> Paper and talks have other collaborators and another history
+    \item<4-> Today, \cmd{DrivenSpin/} always means the code repository
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{\texttt{src} computes, scripts orchestrate}
+\begin{julia}[title={\hfill\tiny\color{unibasGrey}\smallcapsline{scripts/rabi.jl}}]
+using DrWatson
+@quickactivate "DrivenSpin"          # this project's environment, from any folder
+using DrivenSpin                     # the module in src/
+
+for c in dict_list(Dict(:Δ => [0.0, 2π], :Ω => 2π))   # rad/μs; one run per Δ
+    produce_or_load(c, datadir("sims", "rabi")) do c
+        H = hamiltonian(c[:Δ], c[:Ω])
+        t = range(0, 3, length = 301)                  # μs
+        Dict("t" => t, "Pe" => excited_population.(Ref(H), t))
+    end
+end
+\end{julia}
+  \begin{itemize}
+    \item<2-> Scripts contain calls and parameters, no physics
+    \item<3-> The same function serves the script, the test and the notebook
+    \item<4-> \cmd{produce\_or\_load}: compute and save, or load if the file exists
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{Every result knows its commit}
+\begin{terminal}
+$ ls data/sims/rabi
+Δ=0.0_Ω=6.28.jld2    Δ=6.28_Ω=6.28.jld2
+julia> data = wload(datadir("sims", "rabi", "Δ=0.0_Ω=6.28.jld2"));
+
+julia> permutedims(sort(collect(keys(data))))
+1×3 Matrix{String}:
+ "Pe"  "gitcommit"  "t"
+
+julia> data["gitcommit"]
+"3f2a91c4e8...-dirty"
+\end{terminal}
+  \begin{itemize}
+    \item<2-> File name = parameters; run the script again and it loads instead of computing
+    \item<3-> \cmd{gitcommit}, added automatically: which version of the code made the file
+    \item<4-> \cmd{-dirty}: the code had uncommitted changes, so that version is lost
+  \end{itemize}
+
+  \vspace{1ex}
+  \onslide<5->{\centering\ckeybox[0.62\linewidth]{Commit first, then run}\par}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{The environment is part of the result}
+  \begin{columns}[T]
+    \begin{column}{0.46\textwidth}
+      \textbf{\cmd{Project.toml}}
+      \begin{itemize}
+        \item What you depend on
+        \item Written by \cmd{Pkg.add}
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \textbf{\cmd{Manifest.toml}}
+      \begin{itemize}
+        \item Exact version of every package
+        \item Never edited by hand
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \vspace{1ex}
+\begin{onlyenv}<2->
+\begin{terminal}
+$ git clone git@github.com:you/DrivenSpin.git
+$ cd DrivenSpin
+$ julia --project -e 'using Pkg; Pkg.instantiate()'    # same versions as yours
+\end{terminal}
+\end{onlyenv}
+  \begin{itemize}
+    \item<3-> Commit both: a colleague, a referee or CI gets your exact setup
+    \item<4-> Agents sometimes ``fix'' an error with \cmd{Pkg.update()}: package versions
+          change, and your numbers may change with them
+    \item<5-> \cmd{Manifest.toml} in a diff you did not expect: ask why
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{A test is a claim you can run}
+\begin{julia}[title={\hfill\tiny\color{unibasGrey}\smallcapsline{test/runtests.jl}}]
+using DrivenSpin, Test
+
+@testset "Rabi" begin
+    Δ, Ω = 0.3, 2π                                  # rad/μs
+    ΩR = sqrt(Ω^2 + Δ^2)
+    H = hamiltonian(Δ, Ω)
+    for t in range(0, 3, length = 31)               # μs
+        @test excited_population(H, t) ≈ Ω^2 / ΩR^2 * sin(ΩR * t / 2)^2 atol = 1e-10
+    end
+    @test excited_population(hamiltonian(0.0, Ω), π / Ω) ≈ 1    # π-pulse
+end
+\end{julia}
+  \begin{itemize}
+    \item<2-> One \cmd{@testset} per physical claim; its name says which
+    \item<3-> \cmd{a $\approx$ b} compares with a \emph{relative} tolerance: near zero, give
+          \cmd{atol}
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{Running the tests}
+\begin{terminal}
+$ julia --project -e 'using Pkg; Pkg.test()'
+     Testing Running tests...
+Test Summary: | Pass  Total  Time
+Rabi          |   32     32  0.4s
+     Testing DrivenSpin tests passed
+\end{terminal}
+  \begin{itemize}
+    \item<2-> Run them before every commit; the agent can run them too
+    \item<3-> Keep them fast: under a minute, or nobody runs them
+    \item<4-> A failing test is information, not an obstacle
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{What makes a good test}
+  \begin{itemize}
+    \item \textbf{Physics, not implementation}: a formula, a limit, a conservation law
+    \item<2-> \textbf{Deterministic}: fix the random seed
+    \item<3-> \textbf{Fast}: small systems, short times
+    \item<4-> \textbf{It fails when the physics is wrong}: break the code on purpose
+          and check
+  \end{itemize}
+
+  \vspace{3ex}
+  \onslide<5->{\centering\ckeybox[0.7\linewidth]{A test that cannot fail checks nothing}\par}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Continuous integration}{The tests run on every push}
+  \vspace{2ex}
+  \begin{center}
+    \begin{tikzpicture}[node distance=13mm]
+      \node[box=figHuman] (you) {\textbf{You}\\{\scriptsize\ttfamily git push}};
+      \node[box=figModel,right=of you] (gh) {\textbf{GitHub}\\{\scriptsize new commit}};
+      \node[box=figTool,right=of gh,text width=26mm] (vm) {\textbf{Clean machine}\\
+        {\scriptsize install Julia\\ \ttfamily Pkg.instantiate()\\ Pkg.test()}};
+      \draw[flow] (you) -- (gh);
+      \draw[flow] (gh) -- (vm);
+      \onslide<2->{%
+        \node[font=\large,text=unibasPetrol,right=6mm of vm] (ok) {$\checkmark$\,/\,$\times$};
+        \draw[flow] (vm) -- (ok);
+        \node[lbl,below=1mm of ok] {next to the commit};}
+    \end{tikzpicture}
+  \end{center}
+  \vspace{2ex}
+
+  \begin{itemize}
+    \item<2-> A clean machine: catches ``works on my laptop'' and missing dependencies
+    \item<3-> Nobody can forget to run the tests, including the agent
+    \item<4-> A referee who never sleeps and reads every commit
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{The whole configuration}
+\begin{terminal}[title={\hfill\tiny\color{unibasGrey}\smallcapsline{.github/workflows/CI.yml}}]
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
+      - uses: julia-actions/cache@v2
+      - uses: julia-actions/julia-buildpkg@v1
+      - uses: julia-actions/julia-runtest@v1
+\end{terminal}
+  \begin{itemize}
+    \item<2-> Copy it once; it works for any Julia project
+    \item<3-> Results under the \emph{Actions} tab of the repository on GitHub
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Your tools, same principles}{MATLAB, instruments, FPGA}
+  \vspace{1ex}
+  \renewcommand{\arraystretch}{1.5}
+  \begin{tabularx}{\linewidth}{@{}l X@{}}
+    \toprule
+    \textbf{Principle} & \textbf{In your lab} \\
+    \midrule
+    Version control & Analysis scripts, instrument settings, HDL sources \\
+    \reveal<2>{Tests}          & \reveal<2>{\cmd{matlab.unittest}; for FPGA designs,
+                                  simulation testbenches} \\
+    \reveal<3>{Raw data is read-only} & \reveal<3>{The agent never writes where measurements land} \\
+    \reveal<4>{Traceability}   & \reveal<4>{Save the commit hash and settings with every
+                                  measurement run} \\
+    \bottomrule
+  \end{tabularx}
+\end{frame}

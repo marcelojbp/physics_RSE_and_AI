@@ -18,6 +18,8 @@
 *.xdv
 *.pdf
 !setup/installation.pdf
+!slides/main.pdf
+!handout/notes.pdf
 
 # Julia: results and plots are reproduced, not stored
 DrivenSpin/data/

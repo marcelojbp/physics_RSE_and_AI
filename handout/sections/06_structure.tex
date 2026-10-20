@@ -1,0 +1,197 @@
+% Block 5 of the slides (05_structure.tex).
+\section{Project structure, tests and continuous integration}\label{sec:structure}
+
+\onslides{which code made Figure~3; the DrWatson layout; the code as one part of the
+research project; \texttt{src} computes, scripts orchestrate; every result knows its
+commit; the environment is part of the result; tests; continuous integration; the same
+principles for MATLAB, instruments and FPGA.}
+
+The goal on the first slide is the test of this block: \emph{for every figure, you can say
+which code, data and parameters made it}. An agent makes this harder, because it creates
+files faster than anyone names them well, and easier, because it follows a fixed layout
+reliably once the layout exists.
+
+\subsection{The DrWatson layout}
+
+DrWatson \rf{drwatson,drwatson-docs} is a Julia package that fixes a project layout and
+provides a few functions for naming, saving and loading results.
+\cmd{initialize\_project("DrivenSpin")} creates the folders and a git repository:
+\begin{lstlisting}
+DrivenSpin/
+|-- src/            # the physics: functions, no hard-coded parameters
+|-- scripts/        # short runs that call src/ and save results
+|-- test/           # runtests.jl: the physics checks
+|-- data/
+|   |-- exp_raw/    # measurements: read-only, never modified
+|   |-- exp_pro/    # processed data
+|   `-- sims/       # simulation results (generated)
+|-- plots/          # figures (generated)
+|-- Project.toml    # dependencies
+|-- Manifest.toml   # exact versions
+`-- AGENTS.md       # instructions for the agent
+\end{lstlisting}
+Functions such as \cmd{datadir("sims", "rabi")} and \cmd{plotsdir()} return absolute
+paths into these folders, so a script works from any working directory. A project with
+this layout reads the same to you, your colleagues and the agent. The raw-data folder is
+read-only by convention; \cmd{AGENTS.md} repeats the rule.
+
+\textbf{The code is one part of the project.} A research project also has a manuscript,
+notes and talks, with other collaborators and another history. The code gets its own
+repository inside the project folder, so it can be shared, tested and published on its
+own; in the course, \cmd{DrivenSpin/} always means that code repository.
+
+\subsection{Scripts and \texttt{produce\_or\_load}}
+
+The slide's script (it becomes \cmd{scripts/rabi.jl} in \cmd{DrivenSpin/}):
+\begin{lstlisting}
+using DrWatson
+@quickactivate "DrivenSpin"          # this project's environment, from any folder
+using DrivenSpin                     # the module in src/
+
+for c in dict_list(Dict(:Δ => [0.0, 2π], :Ω => 2π))   # rad/μs; one run per Δ
+    produce_or_load(c, datadir("sims", "rabi")) do c
+        H = hamiltonian(c[:Δ], c[:Ω])
+        t = range(0, 3, length = 301)                  # μs
+        Dict("t" => t, "Pe" => excited_population.(Ref(H), t))
+    end
+end
+\end{lstlisting}
+\begin{placeholder}[Placeholder: \texttt{DrivenSpin/scripts/rabi.jl}]
+Replace the listing above by the real file once D3 exists (it should be identical; the
+slide was written first).
+\end{placeholder}
+
+Line by line:
+\begin{itemize}
+  \item \cmd{@quickactivate "DrivenSpin"} activates the project environment (the
+        \cmd{Project.toml} of \cmd{DrivenSpin/}) wherever the script is started from.
+  \item \cmd{dict\_list} expands a dictionary whose values may be vectors into all
+        combinations: here two configurations, $\Delta = 0$ and $\Delta = 2\pi$, both with
+        $\Omega = 2\pi$.
+  \item \cmd{produce\_or\_load(f, config, path)} builds a file name from \cmd{config} with
+        \cmd{savename}, and returns \cmd{(data, file)}. If the file exists, it is loaded;
+        otherwise \cmd{f(config)} runs and its result is saved \rf{drwatson-docs}. The
+        \cmd{do} block is Julia syntax for passing \cmd{f} as an anonymous function.
+  \item \cmd{savename} sorts the keys, joins \cmd{key=value} pairs with \cmd{\_} and rounds
+        numbers to three significant digits by default, which gives
+        \cmd{Δ=0.0\_Ω=6.28.jld2}.
+  \item For \cmd{.jld2} files the result is saved with \cmd{tagsave}, which adds the key
+        \cmd{gitcommit}: the output of \cmd{git describe} for the project repository
+        \rf{drwatson-docs}.
+\end{itemize}
+If the repository had uncommitted changes, \cmd{gitcommit} ends in \cmd{-dirty}: the
+code that made the file is not in any commit, so that version is lost. DrWatson can also
+store the uncommitted diff under the key \cmd{gitpatch} (keyword \cmd{storepatch}, off by
+default). Hence the rule on the slide: \emph{commit first, then run}.
+
+Two cautions for questions. First, \cmd{produce\_or\_load} decides by file name only: if
+you change the code and rerun, it loads the old result. Delete the file or pass
+\cmd{force = true}. Second, three significant digits mean $\Delta = 6.283$ and
+$\Delta = 6.284$ share a file name; choose parameters, or \cmd{savename} options, so that
+names stay distinct.
+
+\subsection{The environment is part of the result}
+
+\cmd{Project.toml} lists what you depend on and is written by \cmd{Pkg.add}.
+\cmd{Manifest.toml} records the exact version of every package, including indirect
+dependencies, and is never edited by hand. With both committed,
+\cmd{Pkg.instantiate()} reproduces your environment on another machine. An agent that
+``fixes'' an error with \cmd{Pkg.update()} changes package versions, and numbers may change
+with them; a \cmd{Manifest.toml} in a diff you did not expect needs an explanation.
+
+\subsection{Tests}
+
+\begin{lstlisting}
+using DrivenSpin, Test
+
+@testset "Rabi" begin
+    Δ, Ω = 0.3, 2π                                  # rad/μs
+    ΩR = sqrt(Ω^2 + Δ^2)
+    H = hamiltonian(Δ, Ω)
+    for t in range(0, 3, length = 31)               # μs
+        @test excited_population(H, t) ≈ Ω^2 / ΩR^2 * sin(ΩR * t / 2)^2 atol = 1e-10
+    end
+    @test excited_population(hamiltonian(0.0, Ω), π / Ω) ≈ 1    # π-pulse
+end
+\end{lstlisting}
+\begin{placeholder}[Placeholder: \texttt{DrivenSpin/test/runtests.jl}]
+Replace by the stage-1 tests of D3 once they exist.
+\end{placeholder}
+
+\cmd{@testset} groups tests under a name that says which physical claim they check;
+\cmd{@test} records a pass or a failure without stopping \rf{julia-test}. The operator
+\lstinline|≈| is \cmd{isapprox}, which by default compares with a \emph{relative} tolerance
+of $\sqrt{\epsilon_{\mathrm{mach}}} \approx 1.5 \times 10^{-8}$, where $\epsilon_{\mathrm{mach}}$ is the
+double-precision machine epsilon, and no absolute tolerance. Near zero a relative tolerance is
+meaningless: \verb|isapprox(1e-12, 0.0)| is \cmd{false}. Hence the \cmd{atol} on the
+slide wherever the expected value can vanish ($\Pe(0) = 0$). Run the tests with
+\verb|julia --project -e 'using Pkg; Pkg.test()'|, before every commit; keep them under a
+minute.
+
+A good test checks \emph{physics}, not the implementation (a formula, a limit, a
+conservation law); it is deterministic (fixed random seed); it is fast; and it fails when
+the physics is wrong. The last property is the one to check deliberately: break the code
+and watch the test fail. A test that cannot fail checks nothing.
+
+\subsection{Continuous integration}
+
+Continuous integration (CI) runs the tests on a clean machine at every push. GitHub
+Actions reads workflow files in \cmd{.github/workflows/}. The slide's file:
+\begin{lstlisting}
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4             # get the repository
+      - uses: julia-actions/setup-julia@v2    # install Julia
+      - uses: julia-actions/cache@v2          # cache packages between runs
+      - uses: julia-actions/julia-buildpkg@v1 # instantiate the environment
+      - uses: julia-actions/julia-runtest@v1  # Pkg.test()
+\end{lstlisting}
+Each \cmd{uses:} line runs a published action \rf{julia-actions}. The result appears as a
+check mark or a cross next to the commit, under the \emph{Actions} tab. CI catches
+``works on my laptop'' (a missing dependency, a file that was never committed) and makes
+sure nobody, including the agent, forgets to run the tests. The file is identical for any
+Julia project. The workflow runs only when \cmd{.github/} sits at the root of a
+repository, which is why \cmd{DrivenSpin/} carries its own copy.
+
+\subsection{Your tools, same principles}
+
+\begin{center}
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+\toprule
+\textbf{Principle} & \textbf{In the lab} \\
+\midrule
+Version control & Analysis scripts, instrument settings, HDL sources of FPGA designs. \\
+Tests & MATLAB's \cmd{matlab.unittest} framework \rf{matlab-unittest}; simulation
+  testbenches for FPGA designs. \\
+Raw data is read-only & The agent never writes where measurements land. \\
+Traceability & Save the commit hash and the settings with every measurement run. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{qa}
+\Q{Do I have to use DrWatson?}
+No. The principles are a fixed layout, results tied to a commit, and a pinned
+environment. DrWatson gives them to Julia projects in a few lines.
+
+\Q{Why not commit the results too?}
+They can be regenerated from code, data and parameters, which are committed; large
+binary files bloat the history. Archive final results that a paper depends on in a data
+repository with a DOI.
+
+\Q{How do I test code with random numbers?}
+Fix the seed (\cmd{Random.seed!}) in the test, and test statistical claims with a
+tolerance derived from the expected spread (Section~\ref{sec:verification}).
+
+\Q{Does CI cost money?}
+GitHub Actions is free for public repositories; private repositories have a monthly
+quota of free minutes.
+\end{qa}
+
+\textbf{Read next:} \emph{Good enough practices in scientific computing} \rf{wilson-good};
+the DrWatson documentation \rf{drwatson-docs}, ``Workflow tutorial''; the Scientific
+Python Development Guide \rf{scipy-dev} for the same ideas in another language.

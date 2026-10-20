@@ -1,0 +1,136 @@
+% Block 6 of the slides (06_verification.tex).
+\section{Verification in physics}\label{sec:verification}
+
+\onslides{exact checks (analytic solution, limiting case, structure, symmetry);
+consistency checks (convergence, independent route, bounds and units,
+injection--recovery); convergence order; two independent routes; injection--recovery; tests
+first; who checks the tests; a status for every claim.}
+
+Software engineering tests code against examples someone wrote down. Physics offers
+something stronger: statements that must hold whatever the implementation. The symbols
+of the driven spin used below are defined in Section~\ref{sec:physics}: the excited-state
+population $\Pe$, the Rabi frequency $\Omega$, the detuning $\Delta$, the generalised Rabi
+frequency $\OmR = \sqrt{\Omega^2 + \Delta^2}$, the density matrix $\rho$, the times
+$T_1$ and $T_2$, the pure-dephasing time $T_\phi$ with rate $\Gamma_\phi = 1/T_\phi$, and the
+dissipator $\Dis$ of the master equation~\eqref{eq:lindblad}.
+
+\subsection{Exact statements}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\linewidth}{@{}p{0.22\linewidth}X@{}}
+\toprule
+\textbf{Check} & \textbf{Driven spin, and why it holds} \\
+\midrule
+Analytic solution & $\Pe(t) = (\Omega^2/\OmR^2)\sin^2(\OmR t/2)$ from $\ket{g}$,
+  Eq.~\eqref{eq:rabi}. \\
+Limiting case & $\Omega = 0$: $H$ is diagonal, populations do not move.
+  $\Delta = 0$, $t = \pi/\Omega$: full inversion, $\Pe = 1$. \\
+Structure & $\tr\rho = 1$, $\rho = \rho^\dagger$, eigenvalues of $\rho \geq 0$: the
+  Lindblad equation preserves all three (Section~\ref{sec:lindblad}); a numerical scheme
+  need not. \\
+Symmetry & $\Pe$ is even in $\Delta$: Eq.~\eqref{eq:rabi} depends on $\Delta^2$ only.
+  It stays even with decoherence: the map $\rho \mapsto \sigma_z \rho^\ast \sigma_z$
+  turns the master equation~\eqref{eq:lindblad} at $\Delta$ into the one at $-\Delta$ and
+  leaves $\ket{g}\bra{g}$ and all populations unchanged (checked numerically). \\
+\bottomrule
+\end{tabularx}
+\end{center}
+A symmetry test is cheap and catches a whole class of bugs: a term with the wrong sign
+breaks it even when every individual value looks plausible.
+
+\subsection{Consistency checks}
+
+\textbf{Convergence.} For a method of order $p$, the error at a fixed final time $T$
+scales as $\varepsilon(\delta t) \simeq C \delta t^{\,p}$ for small step $\delta t$, with
+$C$ independent of $\delta t$. Halving the step therefore divides the error by $2^p$:
+\begin{equation}
+  p \simeq \log_2 \frac{\varepsilon(\delta t)}{\varepsilon(\delta t/2)} .
+\end{equation}
+The test on the slide compares the free decay of $\Pe$ from $\ket{e}$ with the exact
+$\ee^{-T/T_1}$ for the classical fourth-order Runge--Kutta method (RK4) with
+$T_1 = 1\,\mu$s, $T = 2\,\mu$s and $\delta t = 0.02$ and $0.01\,\mu$s, and demands
+$p = 4 \pm 0.2$. The slide's numbers were checked: the measured order is $4.01$. A
+convergence test catches a wrong integrator, a missing term in the equation (the error
+then saturates at a constant), and a result reported before it has converged. The same
+idea applies to any cutoff: grid size, Fock-space truncation, number of Monte Carlo
+samples.
+
+\begin{placeholder}[Placeholder: convergence test of \texttt{DrivenSpin}]
+Quote the convergence test from \texttt{DrivenSpin/test/runtests.jl} once it exists. The
+slide's version:
+\lstinline|@test log2(err(0.02) / err(0.01)) ≈ 4 atol = 0.2|.
+\end{placeholder}
+
+\textbf{Independent route.} Solve the same problem with a different method written by
+someone else, and compare. For the driven spin: the hand-written Lindblad solver against
+QuantumOptics.jl \rf{qojulia}. Note how the dephasing appears there: the slide passes the
+jump operator $\sqrt{1/(2T_\phi)}\,\sigma_z$, whose rate $1/(2T_\phi) = \Gamma_\phi/2$
+matches the term $(\Gamma_\phi/2)\Dis[\sigma_z]\rho$ of Eq.~\eqref{eq:lindblad}.
+Agreement is strong evidence because independent implementations are unlikely to share an
+error; disagreement does not tell you which one is wrong. The same holds for derivations:
+check every analytic result numerically, and every numerical result against a limit you
+can do by hand.
+
+\textbf{Bounds and units.} $0 \leq \Pe \leq 1$; $T_2 \leq 2T_1$ (Section~\ref{sec:lindblad});
+rates in rad/\textmu s. A test with a known period catches a factor of $2\pi$: with
+$\Omega = 2\pi$\,rad/\textmu s the resonant Rabi period is $1$\,\textmu s.
+
+\subsection{Injection--recovery}
+
+The experimentalist's test of an analysis pipeline. Choose true parameters
+$\theta^\ast$; simulate data with realistic noise; run the pipeline, which returns fitted
+values $\hat\theta$ with reported standard errors $\sigma$; and check
+\begin{equation}
+  \left|\hat\theta - \theta^\ast\right| < 3\sigma
+\end{equation}
+for each parameter. One seed tests that the pipeline works. Many seeds test that the
+error bars are honest: the \emph{pulls} $(\hat\theta - \theta^\ast)/\sigma$ must be
+distributed as a Gaussian of zero mean and unit width. A mean away from zero is a bias;
+a width above one means the error bars are too small. This is the test that catches an
+error-bar computation that ignores correlations, a noise model that does not match the
+data, or a fit that converges to a wrong local minimum. Stage~4 of the hands-on
+(Section~\ref{sec:stage4}) is an injection--recovery test.
+
+\subsection{Tests first}
+
+The sequence on the slide: you list the checks; the agent writes the tests; you read and
+commit them; the agent implements without touching \cmd{test/}; you read the diff.
+Committed tests are a fixed target the agent cannot move unnoticed: any change to them
+shows up in \cmd{git diff test/}. Writing them first also forces you to say what
+``correct'' means before you see a result, which protects against accepting whatever
+comes out. This is the software engineers' test-driven development, and it matches the
+verifiable-reward training of Section~\ref{sec:llm}: give the agent a check, and it
+iterates until the check passes.
+
+\textbf{Who checks the tests?} An agent writing both code and tests grades its own
+homework. Tests derived from the implementation (``compute the value, paste it as
+expected value'') check only that the code does what it does. Test against physics.
+Break the code on purpose: every important test must fail. Changing the code
+systematically and checking that some test fails is called \emph{mutation testing}; the
+planted bug of block~8 is one hand-made mutation. And read every line of \cmd{test/}:
+it is short, and it is the part you cannot delegate.
+
+\subsection{A status for every claim}
+
+The slide's labels come from the instructor's own projects: \emph{verified} (reproduced
+by an independent route), \emph{fixed} (wrong as stated, corrected), \emph{weakened}
+(true only under a narrower condition, now stated), \emph{retracted} (does not survive),
+\emph{open} (not decidable with the tools at hand). Keeping such a list in a file in the
+repository turns ``the agent said so'' into a record that a referee, or you in a year,
+can audit.
+
+\begin{qa}
+\Q{How do I test a fit where I do not know the true answer?}
+That is what injection--recovery is for: you create a case where you do know it, with
+the same noise and sampling as the real data.
+
+\Q{My result agrees with QuantumOptics.jl. Is it right?}
+It is much more likely to be right. Both could share a wrong model (for example the wrong
+sign convention for $\Delta$), so the analytic and limiting-case tests remain necessary.
+
+\Q{What if the agent says a test is wrong?}
+It might be. The prompt on the slide says ``If a test seems wrong, stop and tell me why''.
+Then you decide, and the change to the test is its own commit with its reason in the
+message.
+\end{qa}

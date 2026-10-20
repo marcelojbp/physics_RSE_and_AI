@@ -1,0 +1,135 @@
+% Block 8 of the slides (08_failures.tex) and the conclusion (90_conclusion.tex).
+\section{Failure modes and responsibility}\label{sec:failures}
+
+\onslides{the planted bug; ``plausible is not correct''; the bug your tests cannot
+see; two rogues' galleries; you are the author; recording which tool was used.}
+
+\subsection{The planted bug}
+
+Participants apply a patch to their own repository with \cmd{git apply}, make the Rabi
+plot, and run the tests. The patch changes one character: $\Omega/2 \to \Omega$ in
+\cmd{hamiltonian}. Its effect at $\Delta = 0$: the Hamiltonian becomes $\Omega\sigma_x$, so
+\begin{equation}
+  \Pe(t) = \sin^2(\Omega t) \quad\text{instead of}\quad \sin^2(\Omega t/2).
+\end{equation}
+The plot still shows smooth, bounded, periodic oscillations between $0$ and $1$, at twice
+the frequency. Without a reference, the eye accepts both curves (slide ``Plausible is not
+correct''). The $\pi$-pulse test fails at once: at $t = \pi/\Omega$ the buggy population
+is $\sin^2\pi = 0$ instead of $1$. Off resonance the bug changes amplitude and frequency
+together, $\Pe = \Omega^2/(\Omega^2 + \Delta^2/4)\,\sin^2(\sqrt{\Omega^2 + \Delta^2/4}\,t)$,
+so the analytic test fails at every $\Delta$. Find the bug with \cmd{git diff}; undo it with
+\cmd{git restore .}.
+
+\begin{placeholder}[Placeholder: \texttt{exercises/planted\_bug.patch}]
+Quote the patch once D3 provides it (it must touch only the line of \texttt{hamiltonian},
+so it applies after stages 2--4).
+\end{placeholder}
+
+\subsection{The bug your tests cannot see}
+
+Flip the sign of the Hamiltonian term in Eq.~\eqref{eq:lindblad}: $-i[H, \rho] \to
++i[H, \rho]$. This is evolution under $-H$, equivalently backwards in time for the
+coherent part. All populations in the course are unchanged, because
+\begin{itemize}
+  \item the Rabi formula~\eqref{eq:rabi} is even in $\Omega$ and in $\Delta$;
+  \item the Ramsey and echo results~\eqref{eq:ramsey} depend on $\cos(\Delta\tau)$ only;
+  \item the dissipators do not involve $H$.
+\end{itemize}
+So every test of stages 1--4 passes. Only phases change sign: at $\Delta = 0$,
+$\langle\sigma_y\rangle(t) = \sin(\Omega t)$ (Section~\ref{sec:stage1}) becomes
+$-\sin(\Omega t)$. The lesson on the slide: your tests decide which bugs you can see, so
+test every quantity you will publish. A single test of $\langle\sigma_y\rangle$, or of
+the sign of a Ramsey phase $\varphi$ with a known detuning, closes this gap.
+
+\subsection{Rogues' gallery}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\linewidth}{@{}p{0.36\linewidth}X@{}}
+\toprule
+\textbf{Failure} & \textbf{Why it happens, and the defence} \\
+\midrule
+Invented or misquoted reference & Plausible text with no lookup (Section~\ref{sec:llm}).
+  Open the link; check that the paper exists \emph{and} says that. \\
+Factor of 2, wrong sign & Conventions differ between sources ($\Omega$ vs.\ $\Omega/2$,
+  $\Delta = \omega_q - \omega_d$ or the reverse). Analytic and limiting-case tests. \\
+Test weakened to pass & Rewarded for passing checks (Section~\ref{sec:llm}). Commit tests
+  first; read every test diff. \\
+Convention silently changed & Fourier normalisation, $\hbar = 1$, basis order, sign of
+  $\Delta$. Conventions in \cmd{AGENTS.md}, enforced by tests. \\
+Invented or outdated function names & Knowledge cutoff, little Julia in the training data.
+  Run it; pin versions in \cmd{Manifest.toml}. \\
+Hz where rad/\textmu s was meant & A factor of $2\pi$ that looks harmless. Units in
+  names and docstrings; a test with a known period. \\
+Confident summary of a paper not read & The model writes what such a paper would
+  plausibly say. Ask for page and equation numbers; check them. \\
+``All tests pass'' that were never run & A summary is a claim like any other. Run them
+  yourself; CI runs them anyway. Review the diff, not the summary. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{You are the author}
+
+\textbf{Accountability.} An AI tool is not an author, and every claim in the paper is
+yours. Nature's 2023 editorial \rf{nature-rules} set two ground rules that most
+publishers now follow: no AI tool is credited as an author, and its use is documented in
+the methods or acknowledgements. The American Physical Society updated its policy in
+June 2026 \rf{aps-news,aps-policy}. It allows substantive uses (literature synthesis, data
+analysis, scientific reasoning, figures) with disclosure, and states that an AI program
+cannot be held accountable and therefore cannot be an author. The disclosure names the
+tool and version, how it assisted, how it was directed, and how its output was verified;
+AI used in the research goes into the methods section, AI-made figures into their
+captions, other substantive uses into the acknowledgements. Light editing needs no
+disclosure.
+
+\textbf{Data.} When an agent reads a file, its content is sent to the provider. Unpublished
+data, collaborators' code and personal data leave your machine. Check what your
+institution and your collaborations allow, and what the provider's terms say about
+retention and training. Referees take note: APS forbids uploading manuscripts under review
+to tools whose terms allow training on them \rf{aps-policy}.
+
+\textbf{Disclosure.} Read your journal's policy before you submit. The APS
+requirement ``how its output was verified'' is easy to meet if the verification is in
+the repository: the tests, the independent routes, the claim statuses.
+
+\textbf{Reproducibility.} Record which tool and model helped, and when. A commit trailer
+costs nothing and is searchable:
+\begin{lstlisting}
+Add Ramsey sequence with fringe-frequency test
+
+Assisted-by: <agent> (<model>)
+\end{lstlisting}
+Some agents add a trailer themselves (for example \cmd{Co-Authored-By}); keep it. Git
+treats any \cmd{Key: value} lines at the end of the message as trailers;
+\cmd{git log --grep "Assisted-by"} finds them later.
+
+\subsection{Conclusion of the course}
+
+The six take-aways on the closing slide, with the section that explains each:
+\begin{enumerate}
+  \item An LLM is a very large fit: plausible is not the same as correct
+        (Section~\ref{sec:llm}).
+  \item An agent closes the loop, so it can check its work, if you give it checks
+        (Section~\ref{sec:agents}).
+  \item Context is finite: one task per session, write the rest down
+        (Section~\ref{sec:context}).
+  \item Git is the safety net: commit often, read every diff (Section~\ref{sec:git}).
+  \item Structure, pinned environments and CI: every result traceable and checked
+        (Section~\ref{sec:structure}).
+  \item Verification is the job: tests that encode physics, written first, read by you
+        (Sections~\ref{sec:verification} and~\ref{sec:physics}).
+\end{enumerate}
+
+\begin{qa}
+\Q{Do I have to disclose that I used an agent to write analysis code?}
+For APS journals, yes: AI used in conducting the research, such as data analysis, is
+disclosed in the methods section \rf{aps-policy}. Other publishers differ; check.
+
+\Q{Can I paste my unpublished data into the agent?}
+Only if your institution, your collaboration and the provider's terms allow it. When in
+doubt, use synthetic data with the same structure (stage~4 is an example).
+
+\Q{The agent's summary says all tests pass. Is that enough?}
+No. Run them yourself, or let CI run them. Review the diff, not the summary.
+\end{qa}

@@ -1,0 +1,143 @@
+% Block 3 of the slides (03_context.tex).
+\section{Context, effort and persistent instructions}\label{sec:context}
+
+\onslides{the context window; context rot; context hygiene; the cost of thinking;
+instruction files; skills; a prompt as a specification; the workflow explore--plan--%
+implement--verify--commit. This block is the first to shorten if time runs out.}
+
+\subsection{The context window}
+
+The context is the token sequence $x_1, \ldots, x_n$ of Section~\ref{sec:llm}. In an agent
+session it contains, in order: the harness's system instructions and tool descriptions,
+your instruction files, your messages, every file the agent read, every command output,
+and the model's own answers and reasoning. Its length is capped by the context window,
+currently $10^5$ to $10^6$ tokens (the largest Llama~3 model has $1.28 \times 10^5$
+\rf{llama3}). At about $0.7$ words per token, $10^5$ tokens is a long novel. That sounds
+like a lot until an agent reads a few source files, a test log and a long solver output.
+
+\subsection{Context rot}
+
+Accuracy degrades as the context grows, well before the window is full. Hong, Troynikov
+and Huber \rf{contextrot} tested 18 models on tasks that stay equally hard as the input
+grows, so that any drop is due to length alone. Every model degraded with input length,
+and non-uniformly. Three findings are worth quoting: a single distractor (text similar to
+the answer but wrong) lowered accuracy, and its effect grew with length; on a
+conversational memory benchmark, all models did much better with a focused input of about
+300 tokens than with the full $\sim 113$K-token history; and models performed
+\emph{worse} when the irrelevant filler was a coherent text than when its sentences were
+shuffled. Earlier, Liu et al.\ \rf{lostmiddle} found that models use information at the
+beginning and end of a long context better than information in the middle.
+
+Practical consequences:
+\begin{itemize}
+  \item A wrong turn stays in the context and keeps influencing later answers. Arguing
+        with the agent adds more of it. Start a fresh session with a better prompt.
+  \item When the window fills, harnesses \emph{compact}: they replace the history by a
+        summary written by the model \rf{context-eng}. The summary is lossy; details you
+        care about may not survive.
+  \item One task, one session. Write what must survive into files (below).
+\end{itemize}
+
+\textbf{Point, do not paste.} Three thousand lines of solver log in your message cost
+context and bury the one relevant line. Naming the failing test and asking the agent to
+run only that test lets it read what it needs. Anthropic's engineering team calls this
+loading context ``just in time'' through references such as file paths \rf{context-eng}.
+
+\subsection{What a session costs}
+
+Providers charge per token, at different prices for input and output. With $N_{\mathrm{in}}$
+and $N_{\mathrm{out}}$ the numbers of input and output tokens and $c_{\mathrm{in}}$,
+$c_{\mathrm{out}}$ the prices per token,
+\begin{equation}
+  \text{cost} \approx N_{\mathrm{in}}\, c_{\mathrm{in}} + N_{\mathrm{out}}\, c_{\mathrm{out}}.
+\end{equation}
+The slide's remark that every agent step re-reads the context has a quantitative
+consequence. Suppose a session takes $K$ steps (tool calls), starts from a context of
+$C_0$ tokens, and each step adds about $a$ tokens (a file read, a command output). Step
+$k$ reads the whole context, $C_0 + k a$ tokens, so
+\begin{equation}
+  N_{\mathrm{in}} \approx \sum_{k=1}^{K} (C_0 + k a) \approx K C_0 + \tfrac12 a K^2 ,
+\end{equation}
+quadratic in the length of the session. Long sessions are expensive as well as less
+accurate. Many providers discount input that repeats an earlier prefix (\emph{prompt
+caching}), which softens but does not remove the effect.
+
+$N_{\mathrm{out}}$ includes the reasoning tokens of Section~\ref{sec:llm}, which you may
+never see. The \emph{effort} setting of current agents controls how much the model
+reasons before answering: low effort for mechanical edits, high for debugging and
+derivations. For scale, the TheoPhysEval agents solved day-long research problems for
+under 3\,USD each \rf{theophyseval}.
+
+\subsection{Instruction files}
+
+Because the model remembers nothing between sessions, harnesses read an instruction file
+from the project folder at the start of every session and put it into the context. The
+file name depends on the tool: \cmd{AGENTS.md} is an open convention read by many agents
+\rf{agentsmd}; Claude Code reads \cmd{CLAUDE.md} \rf{cc-best}. The \cmd{DrivenSpin/}
+project has an \cmd{AGENTS.md} and a one-line \cmd{CLAUDE.md} that points to it.
+
+What belongs in it: the conventions the agent cannot guess (units, basis order, sign of
+$\Delta$), the command that runs the tests, and the rules that protect you (never weaken a
+test, never write to \cmd{data/exp\_raw}). What does not: anything the agent can read from
+the code, long tutorials, information that changes often. The file is in every context,
+so every line costs tokens in every step; a long file also dilutes the rules that matter
+\rf{cc-best}.
+
+\begin{placeholder}[Placeholder: \texttt{DrivenSpin/AGENTS.md}]
+Quote the real file here once D3 exists. The slide shows an illustrative excerpt:
+conventions ($\hbar = 1$, \textmu s, rad/\textmu s, basis $(\ket{e}, \ket{g})$,
+$H = (\Delta/2)\sigma_z + (\Omega/2)\sigma_x$), the test command
+\verb|julia --project -e 'using Pkg; Pkg.test()'|, ``tests first'', ``never modify
+\texttt{test/} while implementing'', ``never write to \texttt{data/exp\_raw}''.
+\end{placeholder}
+
+\subsection{Skills}
+
+A \emph{skill} is a folder with a file \cmd{SKILL.md} that starts with a name and a
+one-line description, followed by instructions, and optionally scripts and further
+files. At the start of a session only the names and descriptions enter the context; when a
+task matches a description, the agent reads the full file, and it opens further files
+only when a step needs them \rf{skills}. This \emph{progressive disclosure} lets a lab keep
+many procedures (fit Ramsey data, calibrate a pulse, format a figure) at the cost of one
+line each. The slide's \cmd{fit-ramsey} skill is an example of the form, not a file in the
+repository. Instruction files and skills are \emph{procedural memory written to disk}:
+the model does not learn, but the folder does.
+
+\subsection{A prompt is a specification}
+
+The slide contrasts ``Simulate a qubit with decoherence'' with a prompt that names the
+goal and context (which file, which conventions), the verification (the tests that define
+``done''), and the constraints (what must not change; plan before code). Each part closes
+a door the agent would otherwise walk through: without the file it invents a new one;
+without the conventions it picks its own; without the tests ``done'' means ``looks
+done''; without constraints it ``improves'' the Hamiltonian.
+
+\subsection{A workflow that works}
+
+Explore (read the code), plan (you approve), implement (small steps), verify (tests,
+plots), commit (you read the diff). The same sequence is the core recommendation of
+Anthropic's guide \rf{cc-best}, and it is tool-independent. Most failures come from
+skipping \emph{plan} (the agent solves the wrong problem) or \emph{verify} (it solves the
+problem wrongly).
+
+\begin{qa}
+\Q{How big is my context right now?}
+Most agents can show it (a command or a status line). If you cannot see it, start fresh
+sessions often.
+
+\Q{Should I always use the highest effort?}
+No: it costs more and is slower, and for mechanical edits it does not help. Raise it when
+the agent goes in circles on a hard problem.
+
+\Q{Instruction file or skill?}
+Rules that apply to every task go into the instruction file. Procedures that apply to
+some tasks go into skills, so they cost context only when used.
+
+\Q{Is ``context rot'' a real effect or a vendor's term?}
+The term comes from the Chroma report \rf{contextrot}, a controlled measurement on 18
+models; the effect is consistent with earlier academic work \rf{lostmiddle}.
+\end{qa}
+
+\textbf{Read next:} \emph{Effective context engineering for AI agents} \rf{context-eng};
+the Chroma report \rf{contextrot}, whose figures are worth a look; the skills article
+\rf{skills}.

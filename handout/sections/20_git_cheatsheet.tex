@@ -1,0 +1,68 @@
+% One page: git cheat sheet.  Usable on its own.
+\clearpage
+\section{Git cheat sheet}\label{sec:cheatsheet}
+
+{\small
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+\toprule
+\multicolumn{2}{@{}l}{\textbf{Start}} \\
+\cmd{git init} & Start recording in the current folder. \\
+\cmd{git clone <address>} & Copy a repository (e.g.\ from GitHub), with its history. \\
+\midrule
+\multicolumn{2}{@{}l}{\textbf{Look} (safe: changes nothing)} \\
+\cmd{git status} & What is new, changed, staged? Run it often. \\
+\cmd{git diff} & Changes not yet staged, line by line. \\
+\cmd{git diff --staged} & What the next commit will contain. \\
+\cmd{git diff --stat} & Which files changed, and how much. \\
+\cmd{git log --oneline} & The history, one line per commit, newest first. \\
+\cmd{git log --stat} / \cmd{git log -p <file>} & Files per commit / the story of one file. \\
+\cmd{git show <hash>} & One commit in full: message and diff. \\
+\cmd{git diff <hash1> <hash2>} & What changed between two snapshots. \\
+\midrule
+\multicolumn{2}{@{}l}{\textbf{Record}} \\
+\cmd{git add <file>} & Stage one file. \\
+\cmd{git add -p} & Stage piece by piece; answer \cmd{y} or \cmd{n} per change. \\
+\cmd{git add -u} & Stage changes to tracked files; new files stay out. \\
+\cmd{git add .} & Stage everything new, changed or deleted here and below. \\
+\cmd{git commit -m "why"} & Take the snapshot. The message says \emph{why}. \\
+\midrule
+\multicolumn{2}{@{}l}{\textbf{Undo}} \\
+\cmd{git restore <file>} & Discard uncommitted edits to a file (\emph{gone for good}). \\
+\cmd{git restore .} & Discard \emph{all} uncommitted edits here and below. Check first. \\
+\cmd{git restore --staged <file>} & Unstage; the edit stays in the file. \\
+\cmd{git revert <hash>} & New commit that undoes an old one; history kept. \\
+\midrule
+\multicolumn{2}{@{}l}{\textbf{Branch}} \\
+\cmd{git switch -c <name>} & New branch here, and switch to it. \\
+\cmd{git switch <name>} & Switch to an existing branch. \\
+\cmd{git merge <name>} & Bring \cmd{<name>} into the current branch. \\
+\cmd{git branch -D <name>} & Delete a branch you no longer want. \\
+\midrule
+\multicolumn{2}{@{}l}{\textbf{Share}} \\
+\cmd{git push} / \cmd{git pull} & Send your commits / get and merge others'. \\
+\bottomrule
+\end{tabularx}
+}
+
+\textbf{Reading a diff.} \cmd{---\,a/} old file, \cmd{+++\,b/} new file;
+\verb|@@ -12,6 +12,6 @@|: excerpt starting at line 12, 6 lines long, old and new;
+\cmd{-} removed, \cmd{+} added, space unchanged. A modified line is one \cmd{-} and one
+\cmd{+}.
+
+\textbf{Never without asking}: \cmd{git reset --hard}, \cmd{git push --force},
+\cmd{git clean -f}. They destroy work.
+
+\textbf{With an agent.} (1) Commit before it starts. (2) One task, one commit. (3) Read
+\cmd{git diff test/} first, then the rest. (4) Let it type the commands; you read the
+result. Useful prompts: ``Commit my manual changes before starting.'' ``Work in modular
+commits: one commit per change, with the tests passing at each.''
+
+\textbf{What goes in}: source, scripts, tests, \cmd{Project.toml}, \cmd{Manifest.toml},
+\cmd{README.md}, \cmd{AGENTS.md}. \textbf{What stays out} (\cmd{.gitignore}): raw data,
+generated results and plots, passwords and keys, ever.
+
+\textbf{Words.} \emph{Commit}: snapshot of the whole project, named by a hash (first 7
+characters suffice). \emph{Staging area}: the next snapshot being prepared. \emph{Branch}:
+a movable name for the latest commit of a line of work. \cmd{HEAD}: what you have checked
+out. \emph{Remote}: another copy, usually \cmd{origin} on GitHub.

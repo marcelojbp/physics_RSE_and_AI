@@ -1,0 +1,85 @@
+% Block 0 of the slides (00_front.tex).
+\section{The thesis: verification is the bottleneck}\label{sec:thesis}
+
+\onslides{two motivation slides (TheoPhysEval, Tao), the thesis, and the
+``new PhD student'' mental model.}
+
+\subsection{Two data points from October 2026}
+
+\textbf{Agents solve research problems.} Ramesh Chandra et al.\ \rf{theophyseval}
+collected 50 unpublished research-level problems in theoretical physics, each with a
+verifiable final answer and each about a day's work or less for a world expert. Agents
+received literature search and the ability to write and run scripts, and no human hints.
+The best agent reached $98\,\%$ correct final answers (49 of 50) at an average cost under
+3\,USD per problem; the runner-up solved 46. Accuracy changed little when web search
+and background papers were withheld, which the authors read as substantial memorisation
+of the literature. They also discuss why no agent-led breakthrough has appeared despite
+this problem-solving ability. Two points matter for the course: the problems had answers
+that could be \emph{checked}, and someone had to build that check.
+
+\textbf{Abundance outpaces verification.} Tao's essay \rf{tao}, based on his public
+lecture at the 2026 International Congress of Mathematicians, assumes that AI tools will
+perform research-level mathematical tasks and asks what mathematicians actually value.
+In Section~7 he lists the ``impedance mismatches'' that would follow; the first is the
+sentence quoted on the slide, that AI-generated proofs will accumulate faster than they
+can be verified. He calls the result a transition from proof scarcity to proof
+abundance, and notes that journals, priority conventions, hiring and prizes were all
+designed for scarcity. The slide carries the argument to physics, where code, numerics
+and derivations have become cheap in the same way.
+
+\subsection{From the data to the thesis}
+
+If producing a result costs minutes, the scarce resource is the confidence that the
+result is right. Research software engineering (RSE) is the body of practice that builds
+that confidence for code written by humans: version control, a fixed project structure,
+automated tests and continuous integration \rf{wilson-good,wilson-best}. None of it was
+designed for AI, and all of it applies, because every one of these practices was
+invented for contributors who make mistakes. An agent is such a contributor, only
+faster.
+
+\subsection{The new PhD student}
+
+The mental model on the slide has four traits, and each maps onto a later block.
+\begin{itemize}
+  \item \textbf{Fast}: it produces more than you can read, so the reading has to be
+        made efficient (diffs, Section~\ref{sec:git}; tests, Section~\ref{sec:verification}).
+  \item \textbf{Eager}: it rarely declines a task, and rarely says ``I don't know''
+        (Section~\ref{sec:llm}, post-training).
+  \item \textbf{Overconfident}: correct and incorrect output read the same
+        (Section~\ref{sec:llm}, plausibility).
+  \item \textbf{Forgetful}: nothing survives the session unless it is written to disk
+        (Section~\ref{sec:context}).
+\end{itemize}
+The analogy has a limit worth stating if asked: a PhD student learns from your
+corrections and becomes more reliable over months; a model does not, unless the
+correction is written into a file it reads every time.
+
+\subsection{A sceptical counterweight}
+
+A randomised controlled trial by METR \rf{metr} gave 16 experienced open-source
+developers 246 tasks in their own repositories, with AI tools allowed or disallowed per
+task. Before the study they forecast that AI would cut completion time by $24\,\%$;
+afterwards they estimated it had cut it by $20\,\%$; measured, it \emph{increased}
+completion time by $19\,\%$. The study used early-2025 tools on large, mature codebases
+the developers knew well, and the authors caution against generalising. Its lasting
+lesson is the gap between perceived and measured productivity: how fast the work
+\emph{feels} is not evidence. The slides dropped this study for pace; it is a good answer
+to ``but does it really make us faster?''
+
+\begin{qa}
+\Q{Is TheoPhysEval not just measuring memorisation?}
+Partly, and the authors say so: removing web search and papers changed accuracy little.
+The problems were unpublished, but their ingredients were not. The course's point
+survives either way: the answers were checkable, and the check made the result usable.
+
+\Q{If agents are this good, why spend an afternoon on verification?}
+Because ``98\,\%'' was measured against known answers. In your research there is no
+answer key; the tests and cross-checks you write are the answer key.
+
+\Q{Did Tao say AI is bad for mathematics?}
+No. The essay conditions on capable AI arriving and asks which values and institutions
+need to be made explicit. The quoted line describes a bottleneck, not a verdict.
+\end{qa}
+
+\textbf{Read next:} Tao \rf{tao}, Sections~1 and~7 (short and non-technical); the
+TheoPhysEval abstract and discussion \rf{theophyseval}; the METR paper \rf{metr}.

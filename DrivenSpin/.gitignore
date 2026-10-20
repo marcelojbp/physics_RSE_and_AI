@@ -1,0 +1,7 @@
+# Generated results: rerun the scripts to reproduce them
+/data/
+/plots/
+
+# Editors and operating systems
+.DS_Store
+.vscode/

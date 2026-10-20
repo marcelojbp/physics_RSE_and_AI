@@ -1,0 +1,39 @@
+\backupbegin
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Backup: inside the transformer}{Attention}
+  \begin{equation*}
+    \mathrm{Attention}(Q, K, V) = \mathrm{softmax}\!\left(\frac{Q K^{\mathsf{T}}}{\sqrt{d}}\right) V
+  \end{equation*}
+
+  \begin{itemize}
+    \item $Q$, $K$, $V$: queries, keys and values, linear maps of the token vectors
+    \item $d$: dimension of the keys; softmax acts row by row
+    \item Each token gathers information from all earlier tokens in the context
+    \item Cost grows with the square of the context length
+  \end{itemize}
+
+  \slidecite{A.~Vaswani et al.\ \emph{Attention is all you need}, Advances in Neural
+    Information Processing Systems \textbf{30} (2017)}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Backup: colours in the schematics}
+  \vspace{2ex}
+  \begin{center}
+    \begin{tikzpicture}[node distance=8mm]
+      \node[box=figHuman] (h) {\textbf{You}};
+      \node[box=figModel,right=of h] (m) {\textbf{Model}};
+      \node[box=figTool,right=of m] (t) {\textbf{Tools}};
+    \end{tikzpicture}
+  \end{center}
+  \vspace{2ex}
+  \begin{itemize}
+    \item Anthracite: what the human does
+    \item Petrol: what the model does, and the git history
+    \item Turquoise: tools, files and side branches
+    \item Basel red: only for what is new on a slide
+  \end{itemize}
+\end{frame}
+
+\backupend

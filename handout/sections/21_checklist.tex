@@ -1,0 +1,59 @@
+% One page: verification checklist.  Also in handout/checklist.md; keep both in sync.
+\clearpage
+\section{Before trusting AI output: a checklist}\label{sec:checklist}
+
+\newcommand{\cb}{$\square$\ }
+\begin{itemize}[label={}, leftmargin=0pt, itemsep=0pt, parsep=0pt]
+\item \textbf{Before the agent starts}
+\item \cb The project is under git and the last commit is clean (\cmd{git status}).
+\item \cb The task is one task, in a fresh session.
+\item \cb The prompt names the files, the conventions (or \cmd{AGENTS.md}), the tests that
+      define ``done'', and what must not change.
+\item \cb For anything non-trivial: the agent proposes a plan and you approve it.
+
+\smallskip
+\item \textbf{Tests}
+\item \cb The tests were written (or listed) \emph{before} the implementation, read by
+      you line by line, and committed.
+\item \cb They check physics, not the implementation: analytic results, limiting cases,
+      symmetries, conservation laws, bounds, units.
+\item \cb At least one test checks every quantity you will publish, including phases and
+      signs, not only populations.
+\item \cb You broke the code on purpose, and the important tests failed.
+\item \cb Approximate comparisons near zero have an absolute tolerance (\cmd{atol}).
+\item \cb Random numbers have a fixed seed.
+
+\smallskip
+\item \textbf{Reading the change}
+\item \cb You read \cmd{git diff test/} first: no loosened tolerance, deleted assertion
+      or special case.
+\item \cb You read the rest of the diff, not the agent's summary of it.
+\item \cb No unexpected change to \cmd{Manifest.toml}, conventions or units.
+\item \cb You ran the tests yourself, or CI ran them on the pushed commit.
+
+\smallskip
+\item \textbf{Numbers and fits}
+\item \cb Converged: halving the step (or raising the cutoff) does not change the result
+      beyond the tolerance; the observed order matches the method.
+\item \cb Cross-checked by an independent route (another package, another method, a
+      limit by hand).
+\item \cb Injection--recovery: the pipeline recovers known parameters within error bars;
+      over many seeds the pulls look like a unit Gaussian.
+\item \cb Results saved with the commit hash (e.g.\ \cmd{produce\_or\_load}), from a
+      clean repository (no \cmd{-dirty}).
+
+\smallskip
+\item \textbf{Text, derivations, references}
+\item \cb Every reference opened: it exists, and it says what is claimed.
+\item \cb Every derivation checked numerically or symbolically by a script in the
+      repository.
+\item \cb Every claim has a status: verified, fixed, weakened, retracted or open.
+
+\smallskip
+\item \textbf{Responsibility}
+\item \cb No data left your machine that your institution or collaboration does not allow.
+\item \cb The tool and model are recorded (commit trailer, README).
+\item \cb The journal's AI policy is followed: disclosure of tool, role, direction and
+      verification.
+\item \cb You can defend every line as your own.
+\end{itemize}

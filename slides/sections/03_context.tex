@@ -1,0 +1,167 @@
+\section{Context, effort and persistent instructions}
+% Block 3 of PLAN.md, 20 min.  Message: the context is the model's only working
+% memory, it is finite and degrades as it fills; what must survive goes to disk.
+% This is the block to shorten if time runs out.
+
+% ------------------------------------------------------------------------------
+\begin{frame}{The context window}{The model's only working memory}
+  \vspace{2ex}
+  \begin{center}
+    \begin{tikzpicture}[seg/.style={draw=unibasWhite,line width=0.8pt,minimum height=8mm,
+        inner sep=0pt,font=\tiny,text=unibasWhite,align=center}]
+      \def\L{11}
+      \draw[unibasLightGrey,line width=0.6pt] (0,-0.4) rectangle (\L,0.4);
+      \node[lbl,anchor=south east] at (\L,0.45) {limit: $\sim 10^5$--$10^6$ tokens};
+      \node[seg,fill=unibasAnthracite,minimum width=8mm,anchor=west] (a) at (0,0) {system};
+      \node[seg,fill=unibasPetrol,minimum width=12mm,right=0pt of a] (b) {instruction\\files};
+      \onslide<2->{\node[seg,fill=figHuman!70,minimum width=10mm,right=0pt of b] (c) {your\\messages};}
+      \onslide<3->{\node[seg,fill=figTool,minimum width=24mm,right=0pt of c] (d) {files read};
+                   \node[seg,fill=figTool!70,minimum width=26mm,right=0pt of d] (e) {tool output};}
+      \onslide<4->{\node[seg,fill=figModel!70,minimum width=16mm,right=0pt of e] (f) {model's\\answers};}
+    \end{tikzpicture}
+  \end{center}
+  \vspace{1ex}
+
+  \begin{itemize}
+    \item Everything the model knows during this session, and nothing else
+    \item<3-> Every file read and every command output adds to it
+    \item<4-> The limit is a few books; a long agent session reaches it
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{More context is not better context}{Context rot}
+  \begin{itemize}
+    \item Accuracy drops as the context grows, long before the limit
+    \item Irrelevant text distracts; a wrong turn stays in memory
+    \item<2-> Near the limit, the harness summarises the history: lossy
+  \end{itemize}
+
+  \vspace{3ex}
+  \onslide<3->{\centering\ckeybox[0.6\linewidth]{One task, one fresh session}\par}
+
+  \slidecite{\citeContextRot}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{Context hygiene}{Point, do not paste}
+\only<1>{%
+  \vspace{0.5ex}{\scriptsize\color{unibasGrey}Instead of this \dots}}
+\begin{prompt}
+It doesn't work, here is the output: [3000 lines of solver log]
+\end{prompt}
+\begin{onlyenv}<2->
+\vspace{-0.5ex}{\scriptsize\color{unibasGrey}\dots\ this:}
+\begin{prompt}
+The Ramsey test in test/runtests.jl fails. Run only that testset,
+read the failing assertion, and explain the cause before changing code.
+\end{prompt}
+\end{onlyenv}
+  \begin{itemize}
+    \item<3-> Name files and functions; the agent reads what it needs
+    \item<3-> After a wrong turn, start a new session rather than arguing
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Thinking costs tokens}{Effort and token economics}
+  \begin{equation*}
+    \text{cost} \approx N_{\mathrm{in}}\,c_{\mathrm{in}} + N_{\mathrm{out}}\,c_{\mathrm{out}}
+  \end{equation*}
+
+  \begin{itemize}
+    \item $N_{\mathrm{in}}$: tokens read; every agent step re-reads the context
+    \item $N_{\mathrm{out}}$: tokens written, including hidden ``thinking''; $c$: price per token
+    \item<2-> \emph{Effort} setting: how much the model thinks before answering
+    \item<3-> Low for mechanical edits, high for debugging and derivations
+  \end{itemize}
+
+  \vspace{1ex}
+  \onslide<4->{{\small Scale: a research-level physics problem for under 3 USD}}
+
+  \slidecite{\citeTheoPhysEval}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{Write it down: instruction files}{The agent forgets; the file does not}
+\begin{terminal}[title={\hfill\tiny\color{unibasGrey}\smallcapsline{DrivenSpin/AGENTS.md (excerpt)}}]
+## Physics conventions
+- ħ = 1; times in μs, angular frequencies in rad/μs
+- Basis (|e⟩, |g⟩); H = (Δ/2)σz + (Ω/2)σx with Δ = ω_q - ω_d
+- Never change a convention without asking
+
+## How to work
+- Run the tests: julia --project -e 'using Pkg; Pkg.test()'
+- Every new function gets a test with a physical check
+- Never weaken or delete a test to make it pass: ask first
+- Never write to data/exp_raw
+\end{terminal}
+  \begin{itemize}
+    \item<2-> Read automatically at the start of every session
+    \item<3-> \cmd{AGENTS.md}, \cmd{CLAUDE.md}, \dots: the file name depends on the tool,
+          the idea does not
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{Skills: procedures on demand}{Written once, loaded when relevant}
+\begin{terminal}[title={\hfill\tiny\color{unibasGrey}\smallcapsline{skills/fit-ramsey/SKILL.md}}]
+---
+name: fit-ramsey
+description: Fit Ramsey fringes and report T2* with errors. Use when
+  analysing Ramsey or free-induction-decay data.
+---
+1. Load the data with load_ramsey(path); never modify the raw file.
+2. Fit P(t) = A exp(-t/T2*) cos(Δt + φ) + B with LsqFit.
+3. Check: residuals show no structure; T2* ≤ 2 T1 if T1 is known.
+4. Save the fit with produce_or_load; plot data and fit; report T2* ± σ.
+\end{terminal}
+  \begin{itemize}
+    \item<2-> Only \cmd{name} and \cmd{description} sit in the context: cheap
+    \item<3-> The body is loaded when a task matches: your lab's procedures, on demand
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{A good prompt is a specification}
+\begin{onlyenv}<1>
+\begin{prompt}
+Simulate a qubit with decoherence.
+\end{prompt}
+\end{onlyenv}
+\begin{onlyenv}<2->
+\begin{prompt}
+Add T1 and T2 decay to the driven-spin model in src/DrivenSpin.jl, using
+the Lindblad equation with the conventions in AGENTS.md.
+Before writing code, propose a plan and the tests: trace preservation,
+positivity, and free decay exp(-t/T1) of the excited population.
+Do not change the existing Hamiltonian or its tests.
+\end{prompt}
+\end{onlyenv}
+  \begin{itemize}
+    \item<2-> \textbf{Goal} and \textbf{context}: which file, which conventions
+    \item<3-> \textbf{Verification}: the tests that define ``done''
+    \item<4-> \textbf{Constraints}: what must not change; plan before code
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{A workflow that works}
+  \vspace{3ex}
+  \begin{center}
+    \begin{tikzpicture}[node distance=5mm]
+      \node[st=figModel] (e) {\textbf{Explore}\\{\scriptsize read the code}};
+      \node[st=figModel,right=of e] (p) {\textbf{Plan}\\{\scriptsize you approve}};
+      \node[st=figModel,right=of p] (i) {\textbf{Implement}\\{\scriptsize small steps}};
+      \node[st=figTool,right=of i] (v) {\textbf{Verify}\\{\scriptsize tests, plots}};
+      \node[st=figHuman,right=of v] (c) {\textbf{Commit}\\{\scriptsize you read the diff}};
+      \foreach \a/\b in {e/p,p/i,i/v,v/c} \draw[flow] (\a) -- (\b);
+    \end{tikzpicture}
+  \end{center}
+  \vspace{2ex}
+
+  \begin{itemize}
+    \item<2-> Most failures come from skipping \emph{plan} or \emph{verify}
+    \item<3-> \emph{Commit} needs version control: next section
+  \end{itemize}
+\end{frame}

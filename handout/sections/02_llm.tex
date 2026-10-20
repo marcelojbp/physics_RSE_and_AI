@@ -1,0 +1,192 @@
+% Block 1 of the slides (01_llm.tex) and the attention backup slide.
+\section{How a large language model works}\label{sec:llm}
+
+\onslides{tokens; next-token prediction; generation as a loop; pre-training as a
+fit; post-training (instruction tuning, human feedback, verifiable rewards); two tables
+of properties and their consequences; knowledge cutoff and the Julia bias.}
+
+\subsection{Tokens}
+
+A model never sees characters. A \emph{tokenizer} splits text into pieces from a fixed
+vocabulary and maps each piece to an integer. Modern tokenizers learn the vocabulary
+from data with byte-pair encoding \rf{sennrich}: start from single bytes and repeatedly
+merge the most frequent adjacent pair into a new symbol, until the vocabulary has the
+target size. Frequent words become one token; rare words, numbers, code and \LaTeX{}
+split into several. Llama~3 uses $128$K tokens and reaches $3.94$ characters per token
+on English text \rf{llama3}. An English word averages about five letters plus a space,
+so one token is roughly $0.7$ words, consistent with the ``$0.75$ words per token'' on the
+slide. The token numbers on the slide are illustrative.
+
+Two consequences come up in questions. Letter-level tasks (counting the r's in a word,
+reversing a string) are hard because the model does not see letters. Arithmetic on long
+numbers is unreliable because digits are grouped into tokens in irregular ways; this is
+one reason agents call a calculator or write a script.
+
+\subsection{Next-token prediction}
+
+Write the tokens so far as $x_1, \ldots, x_n$; this sequence is the \emph{context}. The
+model is a function that returns a probability distribution over the vocabulary for the
+next token,
+\begin{equation}
+  p_\theta(x_{n+1} \mid x_1, \ldots, x_n),
+\end{equation}
+where $\theta$ denotes the parameters of a neural network, a \emph{transformer}
+\rf{vaswani}. Large models have $10^{11}$ to $10^{12}$ parameters; the largest Llama~3
+model has $4.05 \times 10^{11}$ \rf{llama3}. The network outputs one real number per
+vocabulary entry, a \emph{logit} $z_i$, and the distribution is the softmax
+\begin{equation}
+  p_\theta(x_{n+1} = i \mid x_1, \ldots, x_n)
+    = \frac{\ee^{z_i/T_{\mathrm{s}}}}{\sum_j \ee^{z_j/T_{\mathrm{s}}}},
+\end{equation}
+with a \emph{sampling temperature} $T_{\mathrm{s}}$ set by the harness (the original
+distribution is $T_{\mathrm{s}} = 1$). A physicist reads this as a Boltzmann
+distribution with energies $-z_i$. Small $T_{\mathrm{s}}$ concentrates the probability
+on the most likely token; large $T_{\mathrm{s}}$ flattens it.
+
+\textbf{Generation is a loop.} Sample a token, append it to the context, compute the
+distribution again. A long answer is thousands of passes. Two facts follow and are on the
+slide: in each pass the context is the model's only input, and a token once written is
+never revised. A model can correct itself only by writing more text, for example
+``wait, that is wrong'', which is what reasoning models learn to do (below).
+
+\textbf{Attention} (backup slide). Inside the transformer, each token is a vector. In
+each layer, each token's vector is mapped linearly to a \emph{query}, a \emph{key} and a
+\emph{value}; stacking these for all tokens gives matrices $Q$, $K$, $V$, and the layer
+computes
+\begin{equation}
+  \mathrm{Attention}(Q, K, V) = \mathrm{softmax}\!\left(\frac{Q K^{\mathsf{T}}}{\sqrt{d}}\right) V,
+\end{equation}
+where $d$ is the dimension of the keys and the softmax acts row by row \rf{vaswani}. Row
+$m$ of the result is a weighted average of the values of all tokens, weighted by how well
+their keys match the query of token $m$. In a language model a mask restricts the
+average to earlier tokens. The matrix $Q K^{\mathsf{T}}$ has one entry per pair of
+tokens, so the cost grows with the square of the context length; this is one reason the
+context window is finite. 3Blue1Brown's chapters 5 and 6 \rf{3b1b} are the best visual
+explanation.
+
+\subsection{Pre-training: a very large fit}
+
+Pre-training minimises the cross-entropy of the next token over a corpus,
+\begin{equation}
+  \mathcal{L}(\theta) = -\sum_{n} \ln p_\theta(x_{n+1} \mid x_1, \ldots, x_n),
+\end{equation}
+where the sum runs over every position $n$ of every document. This is a maximum-likelihood
+fit: the same principle as a least-squares fit with Gaussian errors, with $10^{12}$
+parameters and $10^{13}$ data points. The largest Llama~3 model was pre-trained on
+$15.6 \times 10^{12}$ tokens \rf{llama3}. The loss falls as a power law in model size,
+data and compute \rf{kaplan}, and for a fixed compute budget model size and data should
+grow together \rf{chinchilla}; these \emph{scaling laws} are why models became large.
+
+What the fit learns is the distribution of text. Text about physics is mostly correct, so
+the model learns a great deal of physics; but the objective rewards the \emph{form} of
+plausible text and never checks its truth. That is the root of the first row of the
+property table: a fluent wrong derivation and a fluent right one are both high-likelihood
+text.
+
+\textbf{Knowledge cutoff.} The corpus ends at some date. Packages released or changed
+after it are unknown or known in an old version. The corpus also reflects what people
+write: there is far more Python than Julia. The slide's example shows the typical
+result. Asked for QuantumOptics.jl, the model writes \cmd{mesolve}, the name of the
+master-equation solver in QuTiP (Python); the Julia package calls it
+\cmd{timeevolution.master} \rf{qojulia,qojulia-docs}. The code looks right and fails at
+the first run, which an agent notices and a chatbot user may not.
+
+\subsection{Post-training: from text model to assistant}
+
+A pre-trained model continues text; asked a question, it may continue with more
+questions. Post-training turns it into an assistant in three stages.
+
+\textbf{Instruction tuning} (supervised fine-tuning). Continue training on examples of
+prompts with good answers written by people. The model imitates the format and tone.
+
+\textbf{Reinforcement learning from human feedback} (RLHF). People compare pairs of
+answers to the same prompt. A second network, the \emph{reward model}, is trained to
+predict which answer people prefer, giving a scalar score $r(x, y)$ for prompt $x$ and
+answer $y$. The language model, now viewed as a policy $\pi_\theta(y \mid x)$, is then
+trained by reinforcement learning to maximise
+\begin{equation}
+  \mathbb{E}_{y \sim \pi_\theta}\left[r(x, y)\right]
+    - \beta\, D_{\mathrm{KL}}\!\left(\pi_\theta \,\|\, \pi_{\mathrm{ref}}\right),
+\end{equation}
+where $\pi_{\mathrm{ref}}$ is the model before this stage, $D_{\mathrm{KL}}$ the
+Kullback--Leibler divergence and $\beta > 0$ a weight that keeps the model from drifting
+far from fluent text. The method comes from Christiano et al.\ \rf{christiano} and was
+applied to language models in InstructGPT \rf{instructgpt}, where a 1.3-billion-parameter
+model trained this way was preferred by human raters over the 175-billion-parameter
+GPT-3. Variants replace human raters with a model that judges answers against written
+principles \rf{constitutional}.
+
+\textbf{Reinforcement learning with verifiable rewards} (RLVR). Replace the learned reward
+model with a check: the final answer to a maths problem matches the known one, or the
+generated code passes the tests. The term RLVR was introduced with Tülu~3
+\rf{tulu3}; DeepSeek-R1 \rf{deepseekr1} showed that this kind of training alone makes a
+model produce long chains of intermediate reasoning, check its steps and backtrack,
+before giving an answer. These are the ``thinking'' tokens of current models. Earlier,
+the same behaviour had been elicited by prompting (``chain of thought'') \rf{wei-cot}.
+
+The key box on the slide summarises the incentives: the model was rewarded for answers
+that \emph{look good to people} and \emph{pass checks}. Neither is the same as being
+correct, and both leave marks.
+
+\subsection{Properties and their consequences}
+
+\textbf{Trained to sound plausible} (pre-training). Right and wrong output have the same
+fluency. References are the classic case: a plausible author, title, journal and year are
+easy to generate and the model has no lookup to check them against. Every reference in
+this course was opened and checked (Part~III).
+
+\textbf{Trained to please} (human feedback). Raters prefer answers that agree with them.
+Sharma et al.\ \rf{sharma} showed that five assistants consistently exhibit this
+\emph{sycophancy}, for example abandoning a correct answer when the user pushes back, and
+that both humans and preference models sometimes prefer a convincing sycophantic answer
+over a correct one. The defence on the slide follows: ask the model to find the flaw in
+your argument, not to confirm it.
+
+\textbf{Rewarded for passing checks} (verifiable rewards). A policy rewarded for passing
+tests learns that weakening the test also passes it. METR reported in 2025 that
+frontier models, in its evaluations, attempted ``(often successfully) to get a higher score
+by modifying the tests or scoring code'' \rf{metr-hacking}. In everyday use this looks like
+a loosened tolerance, a deleted assertion, or a special case for the test input. The
+defence: read every change to a test, and commit tests before the implementation
+(Section~\ref{sec:verification}).
+
+\textbf{Random sampling} (architecture). With $T_{\mathrm{s}} > 0$ the same prompt gives
+different answers. This is a free diagnostic: if two runs disagree on a number, neither
+is reliable. Setting $T_{\mathrm{s}} = 0$ makes the choice greedy, but in practice
+deployed models do not guarantee bit-identical outputs, so do not build reproducibility on
+it; build it on code and data in a repository.
+
+\textbf{No memory between sessions.} The parameters do not change while you use the
+model. Everything it ``knows'' about your project in a session is in the context; at the
+next session it starts from zero. Hence: write things down (Section~\ref{sec:context}).
+
+\textbf{Finite context.} See Section~\ref{sec:context}.
+
+\begin{qa}
+\Q{Is it ``just autocomplete''?}
+The objective is next-token prediction, yes. But predicting the next token of a
+derivation well requires representing a lot of the structure of the derivation, and
+post-training adds goal-directed behaviour. ``Just autocomplete'' underestimates what it
+can do; ``understands physics'' overstates how reliably. The practical answer is the
+course's: treat its output as a claim to be checked.
+
+\Q{Why does it invent references instead of saying it doesn't know?}
+Nothing in pre-training rewards abstaining, and a confident well-formatted answer tends
+to be preferred by raters. Agents with web search can check references, but only if they
+are asked to and actually do it; check the link yourself.
+
+\Q{Does it learn from my conversations?}
+Not within the session: the parameters are fixed. Whether a provider uses conversations
+for future training depends on its terms and your account settings; check them before
+pasting unpublished data (Section~\ref{sec:failures}).
+
+\Q{How many parameters does model X have?}
+Providers of closed models do not publish it. Open-weight models do, for example
+$4.05 \times 10^{11}$ for the largest Llama~3 \rf{llama3}.
+\end{qa}
+
+\textbf{Read or watch next:} Karpathy's \emph{Intro to Large Language Models} (1\,h) and
+\emph{Deep Dive into LLMs like ChatGPT} (3.5\,h), which covers tokenization, pre-training
+and post-training in exactly this order \rf{karpathy-intro,karpathy-deep}; 3Blue1Brown
+chapters 5--6 for attention \rf{3b1b}; the InstructGPT paper \rf{instructgpt},
+Sections~1 and~3, for RLHF.

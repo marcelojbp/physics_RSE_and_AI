@@ -1,0 +1,195 @@
+% -----------------------------------------------------------------------------
+% Personal customisations: extra packages, structure slides, helper macros.
+% Loaded from main.tex with \input{customize.tex}.
+%
+% Nothing here may change the theme's fonts.  Loading lmodern (or any other
+% font package) after the theme silently overrides the Caladea/Carlito pairing
+% the theme sets up, which is why it is not loaded.
+% -----------------------------------------------------------------------------
+
+\usepackage{amsmath,amssymb}
+\usepackage{bm}
+\usepackage{booktabs}
+\usepackage{listings}
+
+% References are set with \slidecite (free-form, no bibliography, no biber).
+
+% -----------------------------------------------------------------------------
+% Structure slides
+% -----------------------------------------------------------------------------
+
+% Table of contents: one line per section, subsections hidden.
+\setbeamertemplate{section in toc}{$\blacktriangleright$~\inserttocsection}
+\setbeamertemplate{section in toc shaded}[default][30]
+\setbeamertemplate{subsection in toc}{}
+
+% Frames broken over several slides are not numbered "(cont.)".
+\setbeamertemplate{frametitle continuation}{}
+
+% A standalone contents slide, with no section highlighted.  Use it once, after
+% the title slide; \AtBeginSection takes over from there.
+\newcommand{\outlineslide}{%
+  \begingroup
+  \setbeamertemplate{footline}{}
+  \setbeamertemplate{headline}{}
+  \themecolor{mint}
+  \begin{frame}[plain]{Outline}
+    \tableofcontents
+  \end{frame}
+  \endgroup
+}
+
+% Each section opens with the outline, current section highlighted.
+\AtBeginSection[]{%
+  \begingroup
+  \setbeamertemplate{footline}{}
+  \setbeamertemplate{headline}{}
+  \themecolor{mint}
+  \begin{frame}[plain]{Outline}
+    \tableofcontents[currentsection]
+  \end{frame}
+  \endgroup
+}
+
+% Each subsection opens with its own divider slide.
+\AtBeginSubsection[]{%
+  \begingroup
+  \setbeamertemplate{footline}{}
+  \setbeamertemplate{headline}{}
+  \begin{frame}[plain,c]
+    \centering
+    {\usebeamerfont{framesubtitle}\usebeamercolor[fg]{framesubtitle}%
+     \smallcapsline{Section \thesection.\thesubsection}\par}
+    \vspace{1.5ex}
+    {\usebeamerfont{title}\usebeamercolor[fg]{title}\subsecname\par}
+  \end{frame}
+  \endgroup
+}
+
+% -----------------------------------------------------------------------------
+% Code listings: Julia, terminal sessions and prompts to an AI agent
+% -----------------------------------------------------------------------------
+% Use them in frames marked [fragile]:
+%   \begin{julia} ... \end{julia}        Julia source
+%   \begin{terminal} ... \end{terminal}  shell commands and their output
+%   \begin{prompt} ... \end{prompt}      what you type to the agent
+%   \begin{agentlog} ... \end{agentlog}  what an agent does (schematic transcript)
+% Greek letters and a few symbols in the source are mapped to maths, so Julia
+% code can be pasted verbatim from DrivenSpin/ (pdfLaTeX has no Unicode mono font).
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+
+\lstdefinelanguage{Julia}{%
+  morekeywords={abstract,begin,break,catch,const,continue,do,else,elseif,end,
+    export,false,finally,for,function,global,if,import,in,let,local,macro,
+    module,mutable,quote,return,struct,true,try,using,while,where},
+  morecomment=[l]\#,
+  morecomment=[n]{\#=}{=\#},
+  morestring=[b]",
+  sensitive=true,
+}
+
+\lstdefinestyle{unibasbase}{
+    basicstyle=\ttfamily\scriptsize,
+    breakatwhitespace=false,
+    breaklines=true,
+    keepspaces=true,
+    columns=fullflexible,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=4,
+    upquote=true,
+    extendedchars=true,
+    literate=
+      {Ω}{{$\Omega$}}1 {Δ}{{$\Delta$}}1 {Γ}{{$\Gamma$}}1 {σ}{{$\sigma$}}1
+      {ρ}{{$\rho$}}1 {ψ}{{$\psi$}}1 {π}{{$\pi$}}1 {φ}{{$\phi$}}1
+      {γ}{{$\gamma$}}1 {μ}{{$\mu$}}1 {ω}{{$\omega$}}1 {ħ}{{$\hbar$}}1
+      {≈}{{$\approx$}}1 {±}{{$\pm$}}1 {≤}{{$\leq$}}1 {≥}{{$\geq$}}1 {→}{{$\to$}}1
+      {₁}{{$_1$}}1 {₂}{{$_2$}}1 {ₑ}{{$_e$}}1 {†}{{$^\dagger$}}1
+      {⟩}{{$\rangle$}}1 {⟨}{{$\langle$}}1 {└}{{$\llcorner$}}1 {●}{{\textbullet}}1
+      {·}{{$\cdot$}}1 {—}{{---}}1 {✓}{{$\checkmark$}}1 {✗}{{$\times$}}1 {×}{{$\times$}}1,
+    xleftmargin=4pt,
+    xrightmargin=4pt,
+    aboveskip=4pt,
+    belowskip=4pt,
+    frame=single,
+    framerule=0.4pt,
+    framesep=4pt,
+}
+
+\lstdefinestyle{unibasel}{
+    style=unibasbase,
+    language=Julia,
+    commentstyle=\color{unibasPetrol},
+    keywordstyle=\color{unibasRed},
+    stringstyle=\color{codepurple},
+    rulecolor=\color{unibasLightGrey},
+    backgroundcolor=\color{unibasPaper},
+}
+\lstset{style=unibasel}
+
+\lstnewenvironment{julia}[1][]{\lstset{style=unibasel,#1}}{}
+
+\lstnewenvironment{terminal}[1][]{\lstset{style=unibasbase,language={},
+    rulecolor=\color{unibasAnthracite},
+    backgroundcolor=\color{unibasAnthracite!6},
+    commentstyle=\color{unibasGrey},
+    morecomment=[l]\#,
+    #1}}{}
+
+\lstnewenvironment{prompt}[1][]{\lstset{style=unibasbase,language={},
+    basicstyle=\ttfamily\footnotesize,
+    rulecolor=\color{unibasPetrol},
+    backgroundcolor=\color{unibasMint!20},
+    title={\hfill\tiny\color{unibasPetrol}\smallcapsline{prompt}},
+    #1}}{}
+
+\lstnewenvironment{agentlog}[1][]{\lstset{style=unibasbase,language={},
+    rulecolor=\color{unibasGrey},
+    backgroundcolor=\color{unibasWhite},
+    title={\hfill\tiny\color{unibasGrey}\smallcapsline{agent transcript (schematic)}},
+    #1}}{}
+
+% -----------------------------------------------------------------------------
+% Helper macros
+% -----------------------------------------------------------------------------
+
+% Coloured hyperlinks
+\newcommand{\hrefcol}[2]{\textcolor{unibasPetrol}{\href{#1}{#2}}}
+\newcommand{\hlinkcol}[1]{\hrefcol{#1}{#1}}
+
+% Centred, narrower paragraph (a statement that should not run edge to edge)
+\newcommand{\centerstate}[1]{%
+  \centering
+  \begin{columns}
+    \begin{column}{0.8\textwidth}
+      #1
+    \end{column}
+  \end{columns}%
+}
+
+% Coloured emphasis.  \c... is Basel red (the highlight colour),
+% \b... is petrol (structure).  Use sparingly: on a slide, one emphasis wins.
+\newcommand{\ctextbf}[1]{\textbf{\textcolor{unibasRed}{#1}}}
+\newcommand{\btextbf}[1]{\textbf{\textcolor{unibasPetrol}{#1}}}
+\newcommand{\ctextsl}[1]{\textsl{\textcolor{unibasRed}{#1}}}
+\newcommand{\btextsl}[1]{\textsl{\textcolor{unibasPetrol}{#1}}}
+\newcommand{\cemph}[1]{\emph{\textcolor{unibasRed}{#1}}}
+\newcommand{\bemph}[1]{\emph{\textcolor{unibasPetrol}{#1}}}
+
+% About / acknowledgement page
+\newcommand{\aboutpage}[2]{%
+  \begingroup
+  \setbeamertemplate{footline}{}
+  \setbeamertemplate{headline}{}
+  \themecolor{mint}
+  \begin{frame}[plain,c]{#1}
+    \centering
+    \begin{minipage}{0.85\textwidth}
+      \usebeamercolor[fg]{normal text}
+      \centering #2
+    \end{minipage}
+  \end{frame}
+  \endgroup
+}

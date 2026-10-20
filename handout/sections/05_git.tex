@@ -1,0 +1,217 @@
+% Blocks 4 and 4b of the slides (04_git.tex, 04b_git_handson.tex).
+\section{Git: the safety net}\label{sec:git}
+
+\onslides{why git now; a chain of snapshots; three places for a change; a first
+repository; reading a diff; a weakened test; undo; branches; remotes; what goes into git;
+habits and prompts for working with an agent; the live demo ``The agent wrecks the
+project''; the nine commands. Block 4b is a local hands-on (four exercises).}
+
+The one-page cheat sheet is Section~\ref{sec:cheatsheet}. This section explains the model
+behind the commands, which is what you need to answer ``what exactly happens when\dots''.
+
+\subsection{What git stores}
+
+A git repository is the hidden folder \cmd{.git/} inside your project. It holds a
+database of \emph{objects}, each named by a hash of its content \rf{progit}:
+\begin{itemize}
+  \item a \emph{blob} is the content of one file;
+  \item a \emph{tree} is a directory listing: names, permissions, and the hashes of the
+        blobs and subtrees;
+  \item a \emph{commit} records one tree (the snapshot of the whole project), the hash of
+        its parent commit (two parents for a merge), the author, the date and the message.
+\end{itemize}
+The hash is a 40-hex-digit SHA-1 value; the first seven digits (\cmd{9c0d5e2}) almost
+always suffice to identify a commit within a project. Because a commit's hash covers its tree and its
+parent, which covers \emph{its} parent, a hash identifies the whole history up to that
+point: change one byte anywhere in the past and every later hash changes. This is why a
+hash stored next to a result (Section~\ref{sec:structure}) pins down the code exactly.
+
+A commit is a snapshot, not a list of changes. A diff is computed on demand by comparing
+two snapshots. Unchanged files are stored once and shared between snapshots, so history
+is cheap.
+
+A \emph{branch} is a file containing one commit hash: a movable label. Committing on a
+branch writes the new commit and moves the label to it. \cmd{HEAD} names what you have
+checked out, normally a branch. That is all a branch is, which is why creating and
+deleting branches costs nothing.
+
+\subsection{Three places for a change}
+
+\begin{center}
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+\toprule
+\textbf{Place} & \textbf{What it is} \\
+\midrule
+Working folder & The files you and the agent edit. \\
+Staging area (index) & The snapshot being prepared; \cmd{git add} copies a file's current
+  content here. \\
+History & The commits; \cmd{git commit} turns the staging area into a new commit. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+The staging area lets you choose what goes into a commit: two unrelated changes, two
+commits (Exercise~2 of block 4b). \cmd{git status} reports where each change is; run it
+often.
+
+\textbf{The forms of \cmd{git add}.} \cmd{git add <file>} stages one file;
+\cmd{git add .} stages everything new, changed or deleted in the current folder and below;
+\cmd{git add -u} stages changes to files git already tracks and leaves new files out;
+\cmd{git add -p} shows each change (\emph{hunk}) and asks \cmd{y} or \cmd{n}. In the
+hands-on it asks file by file in alphabetical order. \cmd{git commit -am "..."} is
+\cmd{git add -u} plus commit in one step: convenient, but it skips the look at what you
+stage.
+
+\subsection{Reading a diff}
+
+\begin{lstlisting}
+--- a/src/DrivenSpin.jl
++++ b/src/DrivenSpin.jl
+@@ -12,6 +12,6 @@ function hamiltonian(Δ, Ω)
+     σx = [0 1; 1 0]
+     σz = [1 0; 0 -1]
+-    return Δ/2*σz + Ω*σx
++    return Δ/2*σz + Ω/2*σx
+ end
+\end{lstlisting}
+\begin{itemize}
+  \item \cmd{---} and \cmd{+++} name the old (\cmd{a/}) and new (\cmd{b/}) version of the
+        file.
+  \item \verb|@@ -12,6 +12,6 @@| is the hunk header: the excerpt starts at line 12 and is
+        6 lines long, in the old and in the new file. Git appends the nearest enclosing
+        function as a hint.
+  \item Lines starting with a space are unchanged context; \cmd{-} lines were removed,
+        \cmd{+} lines added. A modified line appears as one removal and one addition.
+\end{itemize}
+\cmd{git diff} shows changes not yet staged; \cmd{git diff --staged} shows what the next
+commit will contain; \cmd{git diff <hash1> <hash2>} compares two snapshots;
+\cmd{git show <hash>} shows one commit with its message.
+
+\textbf{Spot the problem} (slide). An agent changes
+\lstinline|@test excited_population(H, π/Ω) ≈ 1.0| to
+\lstinline|... ≈ 1.0 atol=1.0|. Now any value between $0$ and $2$ passes, so the test checks
+nothing while staying green. Every change to a test needs a reason you accept.
+
+\subsection{Undo}
+
+\begin{center}
+\begin{tabularx}{\linewidth}{@{}X l X@{}}
+\toprule
+\textbf{Situation} & \textbf{Command} & \textbf{Effect} \\
+\midrule
+Unwanted edits, not staged & \cmd{git restore <file>} & Working file back to the staged
+  (or last committed) version. The edits are gone. \\
+Staged by mistake & \cmd{git restore --staged <file>} & Out of the staging area; the edit
+  stays in the working file. \\
+A bad commit & \cmd{git revert <hash>} & A \emph{new} commit that undoes it; history is
+  kept. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\cmd{git restore .} discards \emph{all} uncommitted changes below the current folder:
+look at \cmd{git status} and \cmd{git diff --stat} first. Uncommitted work that is
+discarded is not recoverable from git, which is why ``commit before the agent starts'' is
+the first habit.
+
+Two commands destroy work and should never run without your explicit approval:
+\cmd{git reset --hard} (moves the branch and overwrites the working folder) and
+\cmd{git push --force} (replaces the history on the remote, including your colleagues'
+commits). Agents occasionally reach for them to ``clean up''.
+
+\subsection{Branches and merging}
+
+\cmd{git switch -c try-rk4} creates a branch at the current commit and switches to it;
+commits now move \cmd{try-rk4} and leave \cmd{main} where it was. If the experiment works,
+\cmd{git switch main} and \cmd{git merge try-rk4}. If \cmd{main} has not moved, the merge
+just moves the \cmd{main} label forward (a \emph{fast-forward}); otherwise git creates a
+merge commit with two parents, as on the slide. If both branches changed the same lines,
+git stops with a \emph{conflict} and marks the competing versions in the file; you edit,
+\cmd{git add} and \cmd{git commit}. If the experiment failed, \cmd{git branch -D try-rk4}
+deletes the label and its commits are as if they never happened.
+
+\subsection{Remotes}
+
+A remote is another copy of the repository, usually on GitHub, with the full history.
+\cmd{git clone} copies one and remembers it as \cmd{origin}; \cmd{git push} sends your new
+commits; \cmd{git pull} fetches new commits and merges them into your branch. Every clone
+is a complete backup. The installation guide set up login over SSH with \cmd{gh}.
+
+\subsection{What goes into git}
+
+Commit source, scripts, tests, \cmd{Project.toml} and \cmd{Manifest.toml},
+\cmd{README.md} and \cmd{AGENTS.md}. Do not commit large raw data (archive it elsewhere),
+generated results and plots (they can be regenerated), and never passwords or API keys.
+The \cmd{.gitignore} file lists patterns git should not track (\cmd{data/},
+\cmd{plots/}, \cmd{*.jld2}).
+
+If a secret was committed and pushed, consider it public: revoke it and issue a new one.
+Removing it from history afterwards is possible but does not undo copies that already
+exist.
+
+\subsection{Git with an agent}
+
+The habits on the slide:
+\begin{enumerate}
+  \item Commit before the agent starts: a clean point to return to, and
+        \cmd{git diff} then shows exactly what the agent did.
+  \item One task, one commit: each change can be reviewed and reverted on its own.
+  \item Read the diff before every commit, tests first.
+  \item Let the agent type the git commands; you check the result.
+\end{enumerate}
+Prompts such as ``Commit my manual changes before starting'' and ``Work in modular
+commits: one commit per change, with the tests passing at each'' make the agent keep a
+history in which your edits and its edits never share a commit.
+
+\textbf{The live demo.} Ask the agent for a sweeping refactor (``all parameters in one
+struct''), then: \cmd{git status --short} (what did it touch?), \cmd{git diff --stat} (how
+much?), \cmd{git restore .} (back to the last commit). Thirty seconds, nothing lost,
+\emph{because} the last commit was clean.
+
+\subsection{Block 4b: the local hands-on}
+
+Four exercises in a throw-away folder \cmd{git-practice/}, in pairs, without agent or
+GitHub; all commands one per line so they also work in Windows PowerShell~5.
+{\raggedright
+\begin{enumerate}
+  \item \textbf{First commits}: \cmd{git init}, \cmd{status}, \cmd{add} one file,
+        \cmd{commit}, then the other; \cmd{git log --oneline}. The files: \cmd{rabi.jl}
+        with the Rabi formula as one line of Julia, and \cmd{notes.md}.
+  \item \textbf{One change, one commit}: edit both files; \cmd{git diff};
+        \cmd{git add -p} (answer \cmd{n} for \cmd{notes.md}, \cmd{y} for \cmd{rabi.jl});
+        \cmd{git diff --staged}; commit; then \cmd{git add -u} and commit the rest.
+  \item \textbf{Undo}: delete the formula and \cmd{git restore} it; stage a change and
+        unstage it with \cmd{git restore --staged}; commit a broken formula
+        ($t/2 \to t$) and undo it with \cmd{git revert --no-edit HEAD}, so both commits
+        remain in the history.
+  \item \textbf{Read the history}: \cmd{git log --oneline}, \cmd{git log --stat},
+        \cmd{git show <hash>}, \cmd{git diff <hash1> <hash2>}, \cmd{git log -p rabi.jl}.
+        Long output opens in a pager: arrow keys to scroll, \cmd{q} to quit.
+\end{enumerate}\par}
+A possible \cmd{rabi.jl} line, in the course conventions:
+\begin{lstlisting}
+Pe(t; Δ, Ω) = Ω^2 / (Ω^2 + Δ^2) * sin(sqrt(Ω^2 + Δ^2) * t / 2)^2   # ħ = 1, rad/μs, μs
+\end{lstlisting}
+
+\begin{qa}
+\Q{Do I need GitHub to use git?}
+No. Everything in block 4b is local. GitHub adds backup, sharing and CI.
+
+\Q{I ran \texttt{git restore} on the wrong file. Can I get it back?}
+Not from git, if the change was never staged or committed. Your editor's undo or local
+history may still have it. This is why the agent should start from a clean commit.
+
+\Q{What is the difference between \texttt{revert} and \texttt{reset}?}
+\cmd{revert} adds a commit that undoes an earlier one; history only grows, which is safe
+on shared branches. \cmd{reset} moves the branch label backwards, so later commits drop
+out of the history; with \cmd{--hard} it also overwrites your files.
+
+\Q{Why does \texttt{git pull} sometimes create a merge commit?}
+Because you and the remote both have new commits; git joins the two lines of history.
+
+\Q{Is SHA-1 not broken?}
+Collisions have been constructed deliberately, and git has added a hardened variant and an
+optional SHA-256 format. For tracking your own research code, accidental collisions are
+not a practical concern.
+\end{qa}
+
+\textbf{Read next:} \emph{Pro Git} \rf{progit}, Chapters~2 (basics), 3 (branching) and
+10 (internals); the Software Carpentry lesson \rf{swc-git} to practise.

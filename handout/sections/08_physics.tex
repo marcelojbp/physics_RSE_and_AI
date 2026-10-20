@@ -1,0 +1,277 @@
+% The toy problem: physics behind the stage cards of block 7 (07_handson.tex) and
+% the checks of block 6.  Conventions of PLAN.md section 5.
+\section{The driven spin: physics of the hands-on}\label{sec:physics}
+
+\onslides{block~7 gives one card per stage: (1) Rabi oscillations, the starting point;
+(2) decoherence, $T_1$ and $T_2$; (3) Ramsey fringes and spin echo; (4) a synthetic
+experiment and fit; (5, stretch) the Jaynes--Cummings model. Each stage is worked
+``tests first'' in four steps (Section~\ref{sec:handson}).}
+
+This section derives every formula on the stage cards, so that every test can be
+explained. All formulas were checked numerically against a direct
+integration of the equations (Python/SciPy, independent of \cmd{DrivenSpin/}). Krantz
+et al.\ \rf{krantz} is an excellent experimental-minded review of the same material for
+superconducting qubits.
+
+\subsection{The model}
+
+A two-level system with states $\ket{e}$ (excited) and $\ket{g}$ (ground), transition
+angular frequency $\omega_q$, is driven by a field of angular frequency $\omega_d$. In the
+laboratory frame,
+\begin{equation}
+  H_{\mathrm{lab}}(t) = \frac{\omega_q}{2}\sigma_z + \Omega \cos(\omega_d t)\,\sigma_x ,
+\end{equation}
+where $\Omega$ is set by the drive amplitude, and $\sigma_x$, $\sigma_y$, $\sigma_z$ are the
+Pauli matrices in the basis $(\ket{e}, \ket{g})$. Transform to the frame rotating with the
+drive, $\ket{\psi'} = U\ket{\psi}$ with $U(t) = \exp(i\omega_d t \sigma_z/2)$. The new
+Hamiltonian is $U H_{\mathrm{lab}} U^\dagger + i \dot U U^\dagger$. The second term gives
+$-(\omega_d/2)\sigma_z$; in the first, $\sigma_+ = \sigma_-^\dagger$ and $\sigma_-$ pick up phases $\ee^{\pm i\omega_d t}$,
+and the drive splits into a static part $(\Omega/2)\sigma_x$ and terms oscillating at
+$2\omega_d$. Dropping the latter (the \emph{rotating-wave approximation}, valid for
+$\Omega, |\Delta| \ll \omega_d$) leaves the course Hamiltonian
+\begin{equation}\label{eq:H}
+  H = \frac{\Delta}{2}\sigma_z + \frac{\Omega}{2}\sigma_x,
+  \qquad \Delta \equiv \omega_q - \omega_d .
+\end{equation}
+$\Omega$ is the \emph{Rabi frequency}, $\Delta$ the \emph{detuning}. Units: $\hbar = 1$,
+times in \textmu s, $\Omega$ and $\Delta$ in rad/\textmu s.
+
+\textbf{Bloch vector.} Write a state as $\rho = \frac12(1 + \mathbf{S}\cdot\boldsymbol\sigma)$
+with the Bloch vector $\mathbf{S} = (\langle\sigma_x\rangle, \langle\sigma_y\rangle,
+\langle\sigma_z\rangle)$; $\ket{e}$ is the north pole $S_z = +1$, $\ket{g}$ the south pole.
+For $H = \frac12\boldsymbol\omega\cdot\boldsymbol\sigma$ with
+$\boldsymbol\omega = (\Omega, 0, \Delta)$, the Heisenberg equations give a precession,
+\begin{equation}
+  \dot{\mathbf{S}} = \boldsymbol\omega \times \mathbf{S},
+\end{equation}
+about the axis $\boldsymbol\omega$ at angular frequency
+$|\boldsymbol\omega| = \OmR \equiv \sqrt{\Omega^2 + \Delta^2}$, the \emph{generalised Rabi
+frequency}. The excited-state population is $\Pe = \bra{e}\rho\ket{e} = (1 + S_z)/2$.
+
+\subsection{Stage 1: Rabi oscillations}\label{sec:stage1}
+
+With $\mathbf{n} = \boldsymbol\omega/\OmR$, Eq.~\eqref{eq:H} is
+$H = (\OmR/2)\,\mathbf{n}\cdot\boldsymbol\sigma$, and since
+$(\mathbf{n}\cdot\boldsymbol\sigma)^2 = 1$,
+\begin{equation}
+  U(t) = \ee^{-iHt} = \cos\frac{\OmR t}{2} - i \sin\frac{\OmR t}{2}\;\mathbf{n}\cdot\boldsymbol\sigma .
+\end{equation}
+The matrix element $\bra{e}\mathbf{n}\cdot\boldsymbol\sigma\ket{g} = n_x - i n_y = \Omega/\OmR$
+gives, starting from $\ket{g}$,
+\begin{equation}\label{eq:rabi}
+  \Pe(t) = \left|\bra{e}U(t)\ket{g}\right|^2 = \frac{\Omega^2}{\OmR^2}\sin^2\frac{\OmR t}{2} .
+\end{equation}
+At resonance ($\Delta = 0$) the population oscillates fully, $\Pe = \sin^2(\Omega t/2)$,
+with period $2\pi/\Omega$: $1$\,\textmu s for $\Omega = 2\pi$\,rad/\textmu s. Off
+resonance the oscillation is faster and its amplitude $\Omega^2/\OmR^2$ smaller.
+
+A resonant pulse of duration $t$ rotates the Bloch vector about $x$ by the \emph{pulse
+area} $\theta = \Omega t$:
+\begin{equation}\label{eq:pulse}
+  R(\theta) = \ee^{-i\theta\sigma_x/2}.
+\end{equation}
+A $\pi$-pulse ($t = \pi/\Omega$) maps $\ket{g} \to -i\ket{e}$; a $\pi/2$-pulse creates an
+equal superposition. The phase is visible in $\langle\sigma_y\rangle$: from $\ket{g}$ at
+$\Delta = 0$, $\dot{\mathbf{S}} = \boldsymbol\omega\times\mathbf{S}$ with $\mathbf{S}(0) =
+(0, 0, -1)$ gives $\mathbf{S}(t) = (0, \sin\Omega t, -\cos\Omega t)$, so
+$\langle\sigma_y\rangle(t) = \sin(\Omega t)$. This sign is the one that flips in the
+``bug your tests cannot see'' (Section~\ref{sec:failures}).
+
+\textbf{Stage-1 tests} (in the starting point): Eq.~\eqref{eq:rabi} at many times; the
+$\pi$-pulse inverts at $\Delta = 0$; unitarity $U^\dagger U = 1$ and norm conservation.
+
+\begin{placeholder}[Placeholder: stage-1 code of \texttt{DrivenSpin}]
+Quote \texttt{hamiltonian(Δ, Ω)}, \texttt{excited\_population(H, t)} and
+\texttt{excited\_population(ρ)} from \texttt{DrivenSpin/src/DrivenSpin.jl} once D3 exists
+(names as agreed in PLAN.md §11).
+\end{placeholder}
+
+\subsection{Stage 2: decoherence}\label{sec:lindblad}
+
+A qubit coupled to an environment is described by its density matrix $\rho$. Under the
+Born--Markov approximations (weak coupling, short environment memory), its evolution has
+the Gorini--Kossakowski--Sudarshan--Lindblad form \rf{lindblad,gks,breuer}. The course
+uses
+\begin{equation}\label{eq:lindblad}
+  \frac{\dd\rho}{\dd t} = -i[H, \rho] + \Gamma_1 \Dis[\sigma_-]\rho
+    + \frac{\Gamma_\phi}{2}\Dis[\sigma_z]\rho,
+  \qquad
+  \Dis[L]\rho = L\rho L^\dagger - \tfrac12\{L^\dagger L, \rho\},
+\end{equation}
+with $\sigma_- = \ket{g}\bra{e}$, the energy-relaxation rate $\Gamma_1 = 1/T_1$ and the
+pure-dephasing rate $\Gamma_\phi = 1/T_\phi$. The first dissipator moves population from
+$\ket{e}$ to $\ket{g}$ (spontaneous emission into the environment); the second randomises
+the phase between $\ket{e}$ and $\ket{g}$ without exchanging energy (for example, a
+fluctuating $\omega_q$).
+
+\textbf{Why this form.} Lindblad \rf{lindblad} and Gorini, Kossakowski and Sudarshan
+\rf{gks} showed in 1976 that Eq.~\eqref{eq:lindblad}, with any operators $L$ and
+non-negative rates, is the most general Markovian generator that keeps $\rho$ a valid
+density matrix: trace one, Hermitian and positive (in fact completely positive) at all
+times. Negative rates, or a dissipator with the wrong sign, break positivity, which is why
+the structure tests of stage~2 detect them.
+
+\textbf{Solving it.} Take $\Omega = 0$ and write $\rho_{ee} = \bra{e}\rho\ket{e}$,
+$\rho_{eg} = \bra{e}\rho\ket{g}$. Working out Eq.~\eqref{eq:lindblad} element by element
+($\Dis[\sigma_z]$ leaves the diagonal alone and multiplies $\rho_{eg}$ by $-2$),
+\begin{equation}
+  \dot\rho_{ee} = -\Gamma_1 \rho_{ee},
+  \qquad
+  \dot\rho_{eg} = -\left(i\Delta + \frac{\Gamma_1}{2} + \Gamma_\phi\right)\rho_{eg}.
+\end{equation}
+The population decays at $\Gamma_1$; the coherence at
+\begin{equation}\label{eq:T2}
+  \frac{1}{T_2} = \frac{1}{2T_1} + \frac{1}{T_\phi}.
+\end{equation}
+Since $\Gamma_\phi \geq 0$, $T_2 \leq 2T_1$: the coherence decays at least half as fast
+as the population, because each decay event also destroys the phase. A parameter set with
+$T_2 > 2T_1$ would need $T_\phi < 0$, which violates positivity; hence the specification
+that \cmd{lindblad} rejects it with an \cmd{ArgumentError}. $T_1 = T_2 = \infty$ switches
+dissipation off and must reproduce stage~1.
+
+\textbf{Stage-2 tests} (stage card): at all times $\tr\rho = 1$, $\rho = \rho^\dagger$,
+eigenvalues $\geq 0$; $\Omega = 0$ from $\ket{e}$: $\Pe(t) = \ee^{-t/T_1}$; $\Omega =
+\Delta = 0$ from $\ket{+} = (\ket{e} + \ket{g})/\sqrt2$: $|\rho_{eg}(t)| =
+\frac12\ee^{-t/T_2}$; $T_2 > 2T_1$ rejected; $T_1, T_2 \to \infty$ gives stage~1.
+
+\textbf{Numerics.} Equation~\eqref{eq:lindblad} is linear in $\rho$,
+$\dot\rho = \mathcal{L}\rho$. RK4 with step $\delta t$ applies a fourth-order polynomial in
+$\delta t\,\mathcal{L}$ per step. Because $\mathcal{L}$ preserves trace and Hermiticity, so
+does the polynomial, up to rounding; positivity it preserves only approximately, with an
+error that shrinks with $\delta t$. The structure tests therefore test the
+implementation of $\mathcal{L}$ more than the integrator, and the convergence test
+(Section~\ref{sec:verification}) tests the integrator. With the slide's parameters the
+measured order is $p = 4.01$.
+
+\subsection{Stage 3: Ramsey fringes and spin echo}\label{sec:stage3}
+
+\textbf{Ramsey.} Start in $\ket{g}$; apply $R(\pi/2)$ (Eq.~\eqref{eq:pulse}); let the qubit
+evolve freely for a time $\tau$ with the drive off, so $H = (\Delta/2)\sigma_z$ and the
+Bloch vector precesses about $z$ at angular frequency $\Delta$; apply $R(\pi/2)$ again;
+measure $\Pe$. Pulses are taken as ideal (instantaneous) and $T_1 \to \infty$, so that
+$T_2 = T_\phi$. During the free evolution the equatorial component of the Bloch vector
+rotates by $\Delta\tau$ and shrinks by $\ee^{-\tau/T_2}$; the second pulse maps it to
+\begin{equation}\label{eq:ramsey}
+  \Pe(\tau) = \tfrac12\left[1 + \ee^{-\tau/T_2}\cos(\Delta\tau)\right].
+\end{equation}
+At $\tau = 0$ the two $\pi/2$-pulses make a $\pi$-pulse and $\Pe = 1$. The fringes
+oscillate at the detuning: this is how experiments calibrate $\omega_q$ against the drive,
+and how they measure coherence times. Ramsey introduced the method of separated
+oscillatory fields in 1950 \rf{ramsey}.
+
+\textbf{Inhomogeneous dephasing.} In a real experiment the detuning differs from shot to
+shot by a static offset $\delta$ (slow drifts, a distribution of $\omega_q$ in an ensemble).
+Averaging $\cos[(\Delta + \delta)\tau]$ over a Gaussian distribution of $\delta$ with
+standard deviation $s_\delta$ gives $\cos(\Delta\tau)\,\ee^{-s_\delta^2\tau^2/2}$: an extra,
+Gaussian decay. The coherence time measured by Ramsey is therefore usually called
+$T_2^\ast$, and $T_2^\ast \leq T_2$.
+
+\textbf{Echo.} Hahn's spin echo \rf{hahn} inserts a $\pi$-pulse in the middle:
+$\pi/2$ -- $\tau/2$ -- $\pi$ -- $\tau/2$ -- $\pi/2$. The $\pi$-pulse about $x$ maps
+$\sigma_z \to -\sigma_z$, so the phase $\delta\tau/2$ acquired in the first half is undone
+in the second, whatever $\delta$ is. With ideal pulses and no decoherence the sequence
+returns $\ket{g}$ for every static $\delta$, $\Pe = 0$ (the total rotation is $2\pi$
+about $x$). Averaging over $\delta$ therefore changes nothing: the echo removes static
+dephasing and leaves only the irreversible part, $T_2$. Fluctuations of $\delta$ during
+the sequence are not refocused, which is why echo decay measures $T_2$.
+
+\textbf{Stage-3 tests} (stage card): fringes at angular frequency $\Delta$ under the
+envelope $\ee^{-\tau/T_2}$; echo independent of a static $\delta$; averaged over random
+static $\delta$, Ramsey decays and echo does not.
+
+\subsection{Stage 4: a synthetic experiment and its fit}\label{sec:stage4}
+
+\textbf{Data.} For each delay $\tau_k$ compute $\Pe(\tau_k)$ from stage~3 and simulate $N$
+single-shot measurements: the number of shots that find $\ket{e}$ is binomial,
+$n_k \sim \mathrm{Binomial}(N, \Pe(\tau_k))$, and the measured population is
+$\hat P_k = n_k/N$ with variance $\Pe(1 - \Pe)/N$.
+
+\textbf{Fit.} The model on the stage card is
+\begin{equation}\label{eq:fitmodel}
+  P(\tau) = B + A\,\ee^{-\tau/T_2}\cos(\Delta\tau + \varphi),
+\end{equation}
+with amplitude $A$, offset $B$ and phase $\varphi$ as additional parameters; for ideal pulses
+$A = B = \frac12$ and $\varphi = 0$, and leaving them free absorbs pulse errors and
+readout offsets, as in an experiment. LsqFit \rf{lsqfit} minimises the weighted sum of
+squared residuals:
+\begin{lstlisting}
+fit = curve_fit(model, τ, Phat, w, p0)   # w = 1 ./ variances (inverse variance)
+coef(fit), stderror(fit)               # best-fit parameters and standard errors
+\end{lstlisting}
+The weights are the inverse variances; estimated from the data, $\hat P_k(1 -
+\hat P_k)/N$ vanishes at $\hat P_k = 0$ or $1$, so floor it (or use the model value). The
+starting values \cmd{p0} matter: the fit has many local minima in $\Delta$; take $\Delta$
+from the peak of a Fourier transform of the data, $T_2$ from the visible decay.
+
+\textbf{Why four times the shots halves the errors.} Each $\hat P_k$ has standard deviation
+$\propto 1/\sqrt{N}$, and the standard errors $\sigma$ of the fitted parameters scale
+linearly with the data errors. So $\sigma \propto 1/\sqrt{N}$, and $N \to 4N$ gives $\sigma \to \sigma/2$.
+
+\textbf{Stage-4 tests} (stage card): injection--recovery with a fixed seed, fitted $T_2$
+and $\Delta$ within $3\sigma$ of the true values; four times more shots give error bars
+about half as large; the script saves the fit with \cmd{produce\_or\_load}, so the file
+carries the commit.
+
+\begin{placeholder}[Placeholder: stage-4 reference solution]
+Quote the fit function and its injection--recovery test once D3 has them (on the
+\texttt{solutions} branch, not in the participants' starting point).
+\end{placeholder}
+
+\subsection{Stage 5 (stretch): the Jaynes--Cummings model}\label{sec:stage5}
+
+A qubit coupled to one mode of a cavity with angular frequency $\omega_c$, photon
+annihilation operator $a$ and coupling $g$ \rf{jaynescummings}:
+\begin{equation}\label{eq:jc}
+  H_{\mathrm{JC}} = \omega_c a^\dagger a + \frac{\omega_q}{2}\sigma_z
+    + g\left(a^\dagger\sigma_- + a\sigma_+\right),
+\end{equation}
+with $\sigma_+ = \ket{e}\bra{g}$ as before. The coupling term is already in
+rotating-wave form (valid for $g \ll \omega_c, \omega_q$): it only exchanges one photon for
+one qubit excitation. Hence the \emph{excitation number}
+$N_{\mathrm{exc}} = a^\dagger a + \sigma_+\sigma_-$ commutes with $H_{\mathrm{JC}}$ and is
+conserved.
+
+For each $n \geq 0$, $H_{\mathrm{JC}}$ couples only $\ket{n, e}$ and $\ket{n+1, g}$ (photon
+number, qubit state), with matrix element $\bra{n+1, g}H_{\mathrm{JC}}\ket{n, e} =
+g\sqrt{n+1}$. On resonance ($\omega_c = \omega_q$), starting from $\ket{n, e}$,
+\begin{equation}
+  \Pe(t) = \cos^2\!\left(g\sqrt{n+1}\,t\right),
+\end{equation}
+which oscillates at angular frequency $2g\sqrt{n+1}$; for $n = 0$ this is the vacuum Rabi
+frequency $2g$, also the splitting of the two dressed states in the spectrum.
+
+\textbf{Stage-5 tests}: $N_{\mathrm{exc}}$ is conserved (commutator, or its expectation
+value along the evolution); the oscillation frequency is $2g\sqrt{n+1}$; the result
+converges in the photon cutoff. A subtlety for the last test: for a Fock initial state,
+conservation of $N_{\mathrm{exc}}$ makes the truncated dynamics \emph{exact} once the cutoff
+includes $n + 1$ photons, so convergence is trivial. A meaningful test starts from a coherent state
+of the field, whose photon-number distribution has a tail; then the populations
+(including the collapse and revival of the Rabi oscillations) converge only as the cutoff
+grows.
+
+\subsection{The hands-on in practice}\label{sec:handson}
+
+Pairs, one person new to git typing the git commands, swapping the keyboard after each
+stage. Getting started: copy \cmd{DrivenSpin/} from the course repository into a new
+folder, \cmd{git init}, commit, and run the tests, which pass at stage~1.
+
+\begin{placeholder}[Placeholder: getting-started commands]
+Final commands depend on PLAN.md §11 (the course repository is already cloned as
+\texttt{\textasciitilde/ai-course/course} during setup) and on the repository URL.
+Copy them from the final slide ``Getting started'' (\texttt{slides/sections/07\_handson.tex}).
+\end{placeholder}
+
+Each stage in four steps:
+\begin{enumerate}
+  \item Prompt: read \cmd{AGENTS.md} and \cmd{src/}; write \emph{only} the tests for the
+        stage in \cmd{test/runtests.jl}, from the checks on the stage card.
+  \item You read \cmd{git diff test/} line by line and commit the tests.
+  \item Prompt: implement the stage in \cmd{src/} until all tests pass; do not modify
+        \cmd{test/}; if a test seems wrong, stop and explain why.
+  \item You read \cmd{git diff}, run the tests yourself, and commit.
+\end{enumerate}
+Done early: push to a private GitHub repository with
+\cmd{gh repo create DrivenSpin --private --source=. --push} and add the CI file; check
+stage~2 against QuantumOptics.jl; stage~5; a convergence test of your time stepper. When
+stuck: ask for an explanation before a fix; after circles, \cmd{git restore .} and a fresh
+session.

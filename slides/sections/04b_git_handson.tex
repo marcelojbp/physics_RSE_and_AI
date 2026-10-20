@@ -1,0 +1,139 @@
+\section{Hands-on: git on your own machine}
+% Block 4b of PLAN.md, 15-20 min, pairs, no agent, no GitHub.  Message: get the
+% local commands into your fingers before part 2 builds on them.  Everything
+% happens in a throw-away folder, so nothing can break.  Commands are one per
+% line (no &&) so that they also work in Windows PowerShell 5.
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Git in your fingers}{15 minutes, in pairs, no agent, no GitHub}
+  \vspace{1ex}
+  \renewcommand{\arraystretch}{1.5}
+  \begin{tabularx}{\linewidth}{@{}l X r@{}}
+    \toprule
+    & \textbf{Exercise} & \textbf{Time} \\
+    \midrule
+    1 & First commits: \cmd{init}, \cmd{status}, \cmd{add}, \cmd{commit} & 4 min \\
+    2 & Choose what goes into a commit & 4 min \\
+    3 & Undo, before and after committing & 4 min \\
+    4 & Read the history & 3 min \\
+    \bottomrule
+  \end{tabularx}
+
+  \vspace{2ex}
+  \begin{itemize}
+    \item<2-> A throw-away folder: nothing you do here can break anything
+    \item<3-> Run \cmd{git status} after every step and read what it says
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{Exercise 1: first commits}
+\begin{terminal}
+$ mkdir git-practice
+$ cd git-practice
+$ git init
+$ git status                  # "No commits yet"
+      ... create rabi.jl and notes.md in VS Code (content below) ...
+$ git status                  # two untracked files
+$ git add rabi.jl
+$ git status                  # one staged, one untracked
+$ git commit -m "Add the Rabi formula"
+$ git add notes.md
+$ git commit -m "Add notes"
+$ git log --oneline           # two commits, newest first
+\end{terminal}
+  \begin{itemize}
+    \item<2-> \cmd{rabi.jl}: the Rabi formula for $\Pe(t)$, as one line of Julia
+    \item<3-> \cmd{notes.md}: anything, e.g.\ ``$\hbar = 1$, rates in rad/\textmu s''
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Choosing what goes into a commit}{The forms of \cmd{git add}}
+  \vspace{1ex}
+  \renewcommand{\arraystretch}{1.5}
+  \begin{tabularx}{\linewidth}{@{}l X@{}}
+    \toprule
+    \textbf{Command} & \textbf{Stages} \\
+    \midrule
+    \cmd{git add <file>} & One file \\
+    \reveal<2>{\cmd{git add .}}  & \reveal<2>{Everything new, changed or deleted in this folder and below} \\
+    \reveal<3>{\cmd{git add -u}} & \reveal<3>{Changes to files git already tracks; new files stay out} \\
+    \reveal<4>{\cmd{git add -p}} & \reveal<4>{Piece by piece: git shows each change and asks
+                                   \cmd{y} (yes) or \cmd{n} (no)} \\
+    \bottomrule
+  \end{tabularx}
+
+  \vspace{2ex}
+  \onslide<5->{{\small \cmd{git commit -am "..."}: \cmd{git add -u}, then commit, in one step.
+    Convenient, but you skip the look at what you stage}}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{Exercise 2: one change, one commit}
+\begin{terminal}
+      ... edit BOTH files: add a line to notes.md, a comment to rabi.jl ...
+$ git status                  # two modified files
+$ git diff                    # what changed, line by line
+$ git add -p                  # asks per file: n for notes.md, y for rabi.jl
+$ git diff --staged           # exactly what will be committed
+$ git commit -m "Document the units in rabi.jl"
+$ git status                  # notes.md is still modified
+$ git add -u
+$ git commit -m "Extend the notes"
+\end{terminal}
+  \begin{itemize}
+    \item<2-> Two unrelated changes, two commits: each one reviewable and revertible
+    \item<3-> \cmd{git diff} before \cmd{add}, \cmd{git diff --staged} before \cmd{commit}
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{Exercise 3: undo}
+\begin{terminal}
+      ... delete the formula in rabi.jl, save ...
+$ git diff                    # the deletion, in red
+$ git restore rabi.jl         # back to the last commit
+
+      ... change rabi.jl again, then ...
+$ git add rabi.jl
+$ git restore --staged rabi.jl     # out of the staging area, edit kept
+$ git restore rabi.jl              # edit gone too
+
+      ... break the formula (t/2 → t), commit it ...
+$ git revert --no-edit HEAD   # a new commit that undoes the last one
+$ git log --oneline           # both commits are in the history
+\end{terminal}
+  \begin{itemize}
+    \item<2-> \cmd{HEAD}: the latest commit; any hash from \cmd{git log} works too
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{Exercise 4: read the history}
+\begin{terminal}
+$ git log --oneline           # one line per commit
+$ git log --stat              # which files each commit touched
+$ git show <hash>             # one commit in full: message and diff
+$ git diff <hash1> <hash2>    # what changed between two snapshots
+$ git log -p rabi.jl          # the whole story of one file
+\end{terminal}
+  \begin{itemize}
+    \item<2-> Long output opens in a viewer: arrows to scroll, \cmd{q} to quit
+    \item<3-> The first 7 characters of a hash are enough
+    \item<4-> Same information in VS Code: Source Control panel, \emph{Graph} view
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Checkpoint}
+  \begin{itemize}
+    \item See what changed: \cmd{git status}, \cmd{git diff}
+    \item<2-> Choose what to commit: \cmd{git add}, \cmd{git diff --staged}
+    \item<3-> Undo before and after committing: \cmd{git restore}, \cmd{git revert}
+    \item<4-> Read the past: \cmd{git log}, \cmd{git show}
+  \end{itemize}
+
+  \vspace{3ex}
+  \onslide<5->{\centering\ckeybox[0.7\linewidth]{That is all you need to supervise an agent}\par}
+\end{frame}

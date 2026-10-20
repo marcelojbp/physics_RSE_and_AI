@@ -1,0 +1,5 @@
+# Same line endings (LF) on every operating system, so that patches apply on
+# Windows too.
+* text=auto eol=lf
+*.png binary
+*.jld2 binary

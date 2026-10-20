@@ -1,0 +1,169 @@
+\section{Hands-on: the driven spin}
+% Block 7 of PLAN.md, 60 min, in pairs (one git novice, one git user).
+% Message: practise the whole loop of blocks 3-6 on one small problem: tests
+% first, agent implements, you read the diff, one commit per step.
+% Timing: 10 min start, 20 min stage 2, 15 min stage 3, 15 min stage 4.
+% Keep the "four steps" slide on the projector while people work.
+
+% ------------------------------------------------------------------------------
+\begin{frame}{The plan for the next hour}
+  \vspace{1ex}
+  \renewcommand{\arraystretch}{1.5}
+  \begin{tabularx}{\linewidth}{@{}l X r@{}}
+    \toprule
+    \textbf{Stage} & \textbf{Physics} & \textbf{Time} \\
+    \midrule
+    1 & Rabi oscillations \hfill{\scriptsize\color{unibasGrey}done: your starting point} & --- \\
+    2 & Decoherence: $T_1$ and $T_2$ & 20 min \\
+    3 & Ramsey fringes and spin echo & 15 min \\
+    4 & Synthetic experiment and fit & 15 min \\
+    \ghost{5} & \ghost{Stretch: cavity, CI, the planted bug} & \ghost{---} \\
+    \bottomrule
+  \end{tabularx}
+
+  \vspace{2ex}
+  \begin{itemize}
+    \item<2-> Pairs: the person new to git types the git commands
+    \item<3-> Swap the keyboard after every stage
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{Getting started}
+\begin{terminal}
+$ git clone git@github.com:marcelojbp/TODO.git course     # course material
+$ cp -r course/DrivenSpin DrivenSpin                       # your own copy
+$ cd DrivenSpin
+$ git init
+$ git add .
+$ git commit -m "Start from stage 1"
+$ julia --project -e 'using Pkg; Pkg.instantiate(); Pkg.test()'
+\end{terminal}
+  \begin{itemize}
+    \item<2-> Your own repository: your history, your commits
+    \item<3-> The tests of stage 1 pass before you change anything
+    \item<4-> Start your agent \emph{inside} \cmd{DrivenSpin/}; it reads \cmd{AGENTS.md}
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{Each stage in four steps}
+\begin{onlyenv}<1>
+\begin{prompt}
+1. Read AGENTS.md and src/. Write ONLY the tests for stage 2 in
+   test/runtests.jl, from the checks on the slide. Do not implement anything.
+\end{prompt}
+\end{onlyenv}
+\begin{onlyenv}<2>
+\begin{terminal}
+2. $ git diff test/              # you read every line
+   $ git commit -am "Stage 2: tests for T1 and T2 decay"
+\end{terminal}
+\end{onlyenv}
+\begin{onlyenv}<3>
+\begin{prompt}
+3. Implement stage 2 in src/ until all tests pass.
+   Do not modify anything in test/. If a test seems wrong, stop and tell me why.
+\end{prompt}
+\end{onlyenv}
+\begin{onlyenv}<4->
+\begin{terminal}
+4. $ git diff                    # you read the implementation
+   $ julia --project -e 'using Pkg; Pkg.test()'
+   $ git commit -am "Stage 2: Lindblad evolution with T1 and T2"
+\end{terminal}
+\end{onlyenv}
+  \begin{itemize}
+    \item<1-> Tests first, from the physics on the slide
+    \item<2-> You read and commit the tests: now they are a fixed target
+    \item<3-> The agent works against the target, not around it
+    \item<4-> The diff is yours to approve
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Stage 2: decoherence}{20 minutes}
+  \begin{equation*}
+    \frac{\dd\rho}{\dd t} = -i[H, \rho] + \Gamma_1 \mathcal{D}[\sigma_-]\rho
+      + \frac{\Gamma_\phi}{2}\mathcal{D}[\sigma_z]\rho
+  \end{equation*}
+  {\scriptsize\color{unibasGrey}
+   $\mathcal{D}[L]\rho = L\rho L^\dagger - \tfrac12\{L^\dagger L, \rho\}$;\;
+   $\sigma_- = \ket{g}\bra{e}$;\;
+   $\Gamma_1 = 1/T_1$, $\Gamma_\phi = 1/T_\phi$;\;
+   $1/T_2 = 1/(2T_1) + 1/T_\phi$}
+
+  \vspace{1ex}
+  \textbf{Tests}
+  \begin{itemize}
+    \item<2-> At all times: $\tr\rho = 1$, $\rho = \rho^\dagger$, eigenvalues $\geq 0$
+    \item<3-> $\Omega = 0$, start in $\ket{e}$: $\Pe(t) = \ee^{-t/T_1}$
+    \item<4-> $\Omega = \Delta = 0$, start in $\ket{+}$: $|\rho_{eg}(t)| = \tfrac12\ee^{-t/T_2}$
+    \item<5-> $T_2 > 2T_1$ is rejected with an error; $T_1, T_2 \to \infty$ gives stage 1
+  \end{itemize}
+  {\scriptsize\color{unibasGrey}\onslide<4->{$\ket{+} = (\ket{e} + \ket{g})/\sqrt{2}$;
+    $\rho_{eg} = \bra{e}\rho\ket{g}$}}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Stage 3: Ramsey and spin echo}{15 minutes}
+  \begin{equation*}
+    \Pe(\tau) = \tfrac12\left[1 + \ee^{-\tau/T_2}\cos(\Delta\tau)\right]
+  \end{equation*}
+  {\scriptsize\color{unibasGrey}Ramsey: $\pi/2$ pulse, free evolution for a time $\tau$,
+   $\pi/2$ pulse; ideal pulses $R(\theta) = \ee^{-i\theta\sigma_x/2}$; start in $\ket{g}$;
+   $T_1 \to \infty$}
+
+  \vspace{1ex}
+  \textbf{Tests}
+  \begin{itemize}
+    \item<2-> Fringes oscillate at angular frequency $\Delta$, under the envelope $\ee^{-\tau/T_2}$
+    \item<3-> Echo, $\pi/2$--$\tau/2$--$\pi$--$\tau/2$--$\pi/2$: result independent of
+          a static detuning $\delta$
+    \item<4-> Average over random static $\delta$: Ramsey decays, echo does not
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Stage 4: a synthetic experiment}{15 minutes}
+  \begin{equation*}
+    P(\tau) = B + A\,\ee^{-\tau/T_2}\cos(\Delta\tau + \varphi)
+  \end{equation*}
+  {\scriptsize\color{unibasGrey}Fit model for Ramsey data; $A$, $B$, $\varphi$: amplitude,
+   offset, phase. Data: stage 3 with $N$ measurements per point, binomial noise}
+
+  \vspace{1ex}
+  \textbf{Tests}
+  \begin{itemize}
+    \item<2-> Injection--recovery: fitted $T_2$ and $\Delta$ within $3\sigma$ of the true
+          values, fixed seed
+    \item<3-> Four times more measurements: error bars about half as large
+    \item<4-> Script: save the fit with \cmd{produce\_or\_load}; the file carries the commit
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Done early?}{Stretch goals}
+  \begin{itemize}
+    \item \textbf{Push}: \cmd{gh repo create DrivenSpin --private --source=. --push},
+          then add the CI file and watch the \emph{Actions} tab
+    \item<2-> \textbf{Independent route}: check stage 2 against QuantumOptics.jl
+    \item<3-> \textbf{Cavity}: Jaynes--Cummings, vacuum Rabi splitting $2g\sqrt{n+1}$,
+          convergence in the photon cutoff
+    \item<4-> \textbf{Convergence}: test the order of your time stepper
+  \end{itemize}
+  {\scriptsize\color{unibasGrey}\onslide<3->{$g$: atom--cavity coupling; $n$: photon number}}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{When you are stuck}
+\begin{prompt}
+The test "free decay" fails. Run only that testset, read the failing
+assertion, and explain the cause before changing any code.
+\end{prompt}
+  \begin{itemize}
+    \item<2-> Ask for an explanation before a fix
+    \item<3-> Agent went in circles? \cmd{git restore .} and a fresh session
+    \item<4-> Still stuck: call me; that is what I am here for
+  \end{itemize}
+\end{frame}

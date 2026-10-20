@@ -1,0 +1,27 @@
+\begin{note}[How to use these notes]
+These notes follow the slides block by block and add what does not fit on a slide:
+the reasoning behind each claim, the details a sharp question will reach, and where
+to read more. They serve three readers.
+\begin{itemize}
+  \item \textbf{The instructor}: each section explains the claims on its slides in
+        enough depth to answer questions, and ends with a box of questions you may get.
+  \item \textbf{Participants who want to go further}: Part~II has two reference cards
+        (git and a verification checklist) that also work on their own; each section
+        points to the best next reading.
+  \item \textbf{Anyone checking a source}: Part~III lists every reference with a link,
+        what it is good for, and how it was verified. Numbers in square brackets, such
+        as \rf{tao}, point there.
+\end{itemize}
+\end{note}
+
+\textbf{Conventions.} Throughout, $\hbar = 1$; times are in \textmu s and angular
+frequencies in rad/\textmu s, so a drive at $1$\,MHz has angular frequency
+$2\pi \times 1\,\mathrm{rad}/\mu\mathrm{s}$. The basis order is $(\ket{e}, \ket{g})$,
+with $\ket{e} = (1, 0)^{\mathsf{T}}$, $\ket{g} = (0, 1)^{\mathsf{T}}$,
+$\sigma_z\ket{e} = +\ket{e}$ and $\sigma_- = \ket{g}\bra{e}$, as in QuantumOptics.jl.
+Section~\ref{sec:physics} defines the Hamiltonian and every other symbol of the toy
+problem.
+
+\textbf{Code.} The Julia project \cmd{DrivenSpin/} of the course repository is the
+reference for all code. Where these notes would quote it and it does not exist yet, a red
+box marks the placeholder.

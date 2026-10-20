@@ -1,0 +1,105 @@
+% Block 2 of the slides (02_agents.tex).
+\section{Chatbots, harnesses and agents}\label{sec:agents}
+
+\onslides{a chatbot where you are the loop; an agent where the loop closes; one
+agent transcript; chatbot versus agent table; permissions; the live demo ``Same task, two
+ways''; asking for verifiable output beyond code.}
+
+\subsection{What a harness is}
+
+The model of Section~\ref{sec:llm} maps text to text and does nothing else. Everything
+else in a product such as Claude Code or Codex is the \emph{harness}: the program that
+\begin{enumerate}
+  \item assembles the context (system instructions, instruction files, your messages,
+        earlier tool results),
+  \item offers the model a set of \emph{tools}, each described by a name, a description
+        and a schema for its arguments (read a file, edit a file, run a shell command,
+        search the web),
+  \item recognises when the model's output is a \emph{tool call}, a structured request
+        such as \texttt{run("julia --project -e 'using Pkg; Pkg.test()'")}, asks you for
+        permission if needed, executes it, and appends the result to the context,
+  \item loops until the model answers without a tool call, and
+  \item manages the context when it fills up (Section~\ref{sec:context}).
+\end{enumerate}
+The model never touches your computer. It writes text that requests an action, and the
+harness decides whether to carry it out. A chatbot in the browser is a harness with no
+tools on your machine, and \emph{you} carry code and error messages between the model and
+your computer: you are the loop.
+
+Interleaving reasoning with actions and observations is known as the ReAct pattern
+\rf{react}. Schluntz and Zhang \rf{agents} distinguish \emph{workflows}, in which code
+fixes the sequence of model calls, from \emph{agents}, in which the model decides its next
+step from the results of the previous one. Their advice, start with the simplest design
+that works, applies to how you use agents too.
+
+\subsection{Why the closed loop matters}
+
+The transcript on the slide (illustrative until \cmd{DrivenSpin/} exists) shows the point
+of the block. The agent runs the tests, reads a failure (\lstinline|0.0 ≈ 1.0|), reads the
+source, finds $\Omega$ where $\Omega/2$ belongs, edits, and runs the tests again. It
+found the factor of two \emph{because a test encoded the physics}: a resonant
+$\pi$-pulse must invert the spin. With the bug, the population at $t = \pi/\Omega$ is
+$\sin^2(\pi) = 0$ instead of $\sin^2(\pi/2) = 1$ (Section~\ref{sec:failures}). An agent
+can check its work against reality, but only against the reality you give it.
+
+Evidence that this works at scale: SWE-bench \rf{swebench} tests whether a system can
+resolve 2294 real GitHub issues from 12 popular Python repositories, judged by the repositories'
+own tests. METR measures the length of software tasks, in human working time, that
+agents complete with $50\,\%$ reliability, and found that this length has doubled
+roughly every seven months since 2019 \rf{metr-horizon}. Both benchmarks rely on
+tests written by people.
+
+\subsection{Permissions}
+
+Agents ask before editing a file or running a command, and every agent lets you approve
+whole classes of actions (all edits, or specific commands). The slide's rules:
+\begin{itemize}
+  \item Never auto-approve deletion, overwriting, or anything outside the project
+        folder. An agent runs commands with your user's rights.
+  \item ``Yes, yes, yes'' is not supervision. If you approve without reading, you have
+        granted full permission with extra steps.
+  \item Git makes a longer leash safe (Section~\ref{sec:git}): any change inside the
+        repository can be inspected and undone, but nothing outside it can.
+\end{itemize}
+
+\subsection{The live demo: same task, two ways}
+
+The prompt on the slide asks for Rabi oscillations with the course Hamiltonian, two
+detunings, three Rabi periods and a check against the analytic formula. What to point out
+while it runs:
+\begin{itemize}
+  \item In the chat, every error costs a copy--paste round trip; the model never sees the
+        plot.
+  \item The agent writes files, runs Julia, reads the error, fixes it. Count the tool
+        calls.
+  \item Ask the room: what did it check? (Typically it compares with the formula at a
+        few points.) What did it not check? (Units, the sign convention of $\Delta$, the
+        initial state, that the plot shows what the caption claims.)
+\end{itemize}
+
+\subsection{Beyond code}
+
+For any task, ask for an output you can verify: links you open for a literature search, a
+script that checks a derivation numerically, an analysis that lives as a script in the
+repository, and text you can defend line by line. A number in a chat window cannot be
+reproduced; a script in a repository can.
+
+\begin{qa}
+\Q{Which agent should I use?}
+The course does not prescribe one; the concepts carry over. Use the one your institution
+or subscription gives you, and check its data-handling terms (Section~\ref{sec:failures}).
+
+\Q{Can the agent delete my files?}
+If you permit it, yes. Keep the project under git, commit before the agent starts, and do
+not approve commands that act outside the project folder.
+
+\Q{Is ``agent'' just marketing?}
+In the sense used here it has a precise meaning: a model in a loop that chooses tool
+calls from their results \rf{agents}. Whether that is useful depends on whether the
+results contain a signal of correctness, which is what tests provide.
+\end{qa}
+
+\textbf{Read next:} \emph{Building effective agents} \rf{agents} (short, practical);
+Anthropic's best-practice guide for its coding agent \rf{cc-best}, whose first advice,
+``give Claude a way to verify its work'', is tool-specific in wording and general in
+content.

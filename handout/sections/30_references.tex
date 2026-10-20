@@ -1,0 +1,357 @@
+% Annotated references.  Every entry was checked on 2026-10-20; the "Checked" line says
+% how.  Keys: \label{ref:<key>}, cited with \rf{<key>}.
+\section{Annotated references}\label{sec:references}
+\raggedright
+
+Every entry below was opened and checked on 20 October 2026: title, authors, year and
+link, and every number these notes quote from it. The \emph{Checked} line says against
+what (the publisher's page, Crossref, the arXiv record, or the document itself). Entries
+that could only be checked in part say so. Entries marked $\star$ are the best next
+reading for participants.
+
+\newcommand{\refentry}[2]{\item\label{ref:#1}#2}
+\newcommand{\use}[1]{\par\textit{Use:} #1}
+\newcommand{\checked}[1]{\par{\small\textit{Checked:} #1}}
+\newcommand{\best}{$\star$\ }
+
+\subsection*{AI in science}
+\begin{enumerate}[label={[\arabic*]}, ref=\arabic*, series=refs, leftmargin=*, itemsep=6pt]
+\refentry{theophyseval}{A.~Ramesh Chandra, A.~Mahajan, A.~Sanyal, M.~Wang et al.
+  (39 authors), \emph{TheoPhysEval: Assessing AI agents at autonomous theoretical physics
+  problem solving}, arXiv:2610.16733 (2026).
+  \url{https://arxiv.org/abs/2610.16733}
+  \use{Motivation slide. 50 unpublished problems; best agent $98\,\%$ (49/50), under
+  3\,USD per problem; little change without web search; no agent-led breakthroughs.}
+  \checked{the PDF (v1, 9 Oct 2026): abstract and Sec.~on results.}}
+\refentry{tao}{\best T.~Tao, \emph{Mathematics in the age of AI}, arXiv:2608.16753
+  (2026). \url{https://arxiv.org/abs/2608.16753}
+  \use{Motivation slide. Essay based on his ICM 2026 public lecture. Section~7, ``Proof
+  scarcity and proof abundance'', contains the quoted sentence; also discusses
+  Goodhart's law.}
+  \checked{the PDF (v1, 17 Aug 2026); quotation verbatim from Sec.~7.}}
+\refentry{metr}{J.~Becker, N.~Rush, E.~Barnes, D.~Rein, \emph{Measuring the impact of
+  early-2025 AI on experienced open-source developer productivity}, arXiv:2507.09089
+  (2025). \url{https://arxiv.org/abs/2507.09089}
+  \use{Scepticism: 16 developers, 246 tasks; forecast $-24\,\%$ time, perceived
+  $-20\,\%$, measured $+19\,\%$.}
+  \checked{arXiv record and abstract.}}
+\end{enumerate}
+
+\subsection*{How LLMs work}
+\begin{enumerate}[label={[\arabic*]}, ref=\arabic*, resume=refs, leftmargin=*, itemsep=6pt]
+\refentry{karpathy-intro}{\best A.~Karpathy, \emph{[1hr Talk] Intro to Large Language
+  Models}, YouTube (22 Nov 2023). \url{https://www.youtube.com/watch?v=zjkBMFhNj_g}
+  \use{The best one-hour overview; pitched at a general technical audience.}
+  \checked{video page: title, channel, upload date.}}
+\refentry{karpathy-deep}{\best A.~Karpathy, \emph{Deep Dive into LLMs like ChatGPT},
+  YouTube (5 Feb 2025). \url{https://www.youtube.com/watch?v=7xTGNNLPyMI}
+  \use{Three and a half hours: tokenization, pre-training, post-training, RL, in the
+  order of block~1.}
+  \checked{video page: title, channel, upload date.}}
+\refentry{3b1b}{\best 3Blue1Brown (G.~Sanderson), \emph{Neural networks} series, in
+  particular \emph{Transformers, the tech behind LLMs} (Chapter~5, 2024) and
+  \emph{Attention in transformers, step-by-step} (Chapter~6, 2024).
+  \url{https://www.3blue1brown.com/topics/neural-networks}
+  \use{Visual explanation of attention (backup slide).}
+  \checked{series page; video pages for chapters 5 and 6 (\cmd{wjZofJX0v4M},
+  \cmd{eMlx5fFNoYc}), uploaded April 2024.}}
+\refentry{vaswani}{A.~Vaswani, N.~Shazeer, N.~Parmar, J.~Uszkoreit, L.~Jones,
+  A.\,N.~Gomez, Ł.~Kaiser, I.~Polosukhin, \emph{Attention is all you need}, Advances in
+  Neural Information Processing Systems \textbf{30} (2017); arXiv:1706.03762.
+  \url{https://arxiv.org/abs/1706.03762}
+  \use{The transformer; attention formula of the backup slide.}
+  \checked{arXiv record (title, authors, 2017). The NeurIPS volume is the standard
+  citation; the arXiv record itself names no venue.}}
+\refentry{sennrich}{R.~Sennrich, B.~Haddow, A.~Birch, \emph{Neural machine translation of
+  rare words with subword units}, arXiv:1508.07909 (2015).
+  \url{https://arxiv.org/abs/1508.07909}
+  \use{Byte-pair encoding for tokenization.}
+  \checked{arXiv record.}}
+\refentry{llama3}{A.~Grattafiori, A.~Dubey et al.\ (Llama Team, Meta), \emph{The Llama~3
+  herd of models}, arXiv:2407.21783 (2024). \url{https://arxiv.org/abs/2407.21783}
+  \use{Concrete numbers for an open model: $405$B parameters, $15.6$T pre-training
+  tokens, $128$K-token vocabulary and context, $3.94$ characters per token on English.}
+  \checked{arXiv record (current author order starts with Grattafiori); numbers from the
+  abstract and the HTML full text.}}
+\refentry{kaplan}{J.~Kaplan, S.~McCandlish, T.~Henighan, T.\,B.~Brown et al.,
+  \emph{Scaling laws for neural language models}, arXiv:2001.08361 (2020).
+  \url{https://arxiv.org/abs/2001.08361}
+  \use{Loss as a power law in parameters, data and compute.}
+  \checked{arXiv record.}}
+\refentry{chinchilla}{J.~Hoffmann, S.~Borgeaud, A.~Mensch, E.~Buchatskaya et al.,
+  \emph{Training compute-optimal large language models}, arXiv:2203.15556 (2022).
+  \url{https://arxiv.org/abs/2203.15556}
+  \use{Model size and data should grow together (``Chinchilla'').}
+  \checked{arXiv record.}}
+\refentry{christiano}{P.~Christiano, J.~Leike, T.\,B.~Brown, M.~Martic, S.~Legg,
+  D.~Amodei, \emph{Deep reinforcement learning from human preferences},
+  arXiv:1706.03741 (2017). \url{https://arxiv.org/abs/1706.03741}
+  \use{Origin of learning a reward model from human comparisons.}
+  \checked{arXiv record.}}
+\refentry{instructgpt}{L.~Ouyang, J.~Wu, X.~Jiang, D.~Almeida et al.\ (20 authors),
+  \emph{Training language models to follow instructions with human feedback},
+  arXiv:2203.02155 (2022). \url{https://arxiv.org/abs/2203.02155}
+  \use{RLHF for language models (InstructGPT); 1.3B model preferred over 175B GPT-3.}
+  \checked{arXiv record and abstract.}}
+\refentry{constitutional}{Y.~Bai, S.~Kadavath, S.~Kundu, A.~Askell et al.,
+  \emph{Constitutional AI: Harmlessness from AI feedback}, arXiv:2212.08073 (2022).
+  \url{https://arxiv.org/abs/2212.08073}
+  \use{Feedback from a model guided by written principles instead of human raters.}
+  \checked{arXiv record.}}
+\refentry{wei-cot}{J.~Wei, X.~Wang, D.~Schuurmans, M.~Bosma et al.,
+  \emph{Chain-of-thought prompting elicits reasoning in large language models},
+  arXiv:2201.11903 (2022). \url{https://arxiv.org/abs/2201.11903}
+  \use{Intermediate reasoning steps by prompting.}
+  \checked{arXiv record.}}
+\refentry{tulu3}{N.~Lambert, J.~Morrison, V.~Pyatkin, S.~Huang et al., \emph{Tülu 3:
+  Pushing frontiers in open language model post-training}, arXiv:2411.15124 (2024).
+  \url{https://arxiv.org/abs/2411.15124}
+  \use{Introduces the term ``reinforcement learning with verifiable rewards'' (RLVR).}
+  \checked{arXiv record and abstract (``a novel method we call\dots'').}}
+\refentry{deepseekr1}{DeepSeek-AI (D.~Guo, D.~Yang, H.~Zhang et al.),
+  \emph{DeepSeek-R1: Incentivizing reasoning capability in LLMs via reinforcement
+  learning}, arXiv:2501.12948 (2025); published in Nature \textbf{645}, 633 (2025).
+  \url{https://arxiv.org/abs/2501.12948}
+  \use{Reasoning (self-reflection, verification) emerging from RL on verifiable rewards.}
+  \checked{arXiv record, including its journal reference.}}
+\refentry{sharma}{M.~Sharma, M.~Tong, T.~Korbak, D.~Duvenaud et al.,
+  \emph{Towards understanding sycophancy in language models}, arXiv:2310.13548 (2023).
+  \url{https://arxiv.org/abs/2310.13548}
+  \use{Sycophancy in five assistants across four tasks; humans and preference models
+  sometimes prefer sycophantic answers.}
+  \checked{arXiv record and abstract.}}
+\refentry{metr-hacking}{S.~Von Arx, L.~Chan, B.~Barnes, \emph{Recent frontier models
+  are reward hacking}, METR blog (5 June 2025).
+  \url{https://metr.org/blog/2025-06-05-recent-reward-hacking}
+  \use{Models modifying tests or scoring code to raise their score.}
+  \checked{the page: title, date, authors, quoted phrase.}}
+\end{enumerate}
+
+\subsection*{Agents and context}
+\begin{enumerate}[label={[\arabic*]}, ref=\arabic*, resume=refs, leftmargin=*, itemsep=6pt]
+\refentry{agents}{\best E.~Schluntz, B.~Zhang, \emph{Building effective agents},
+  Anthropic engineering blog (19 Dec 2024).
+  \url{https://www.anthropic.com/engineering/building-effective-agents}
+  \use{Workflows versus agents; start simple.}
+  \checked{the page: title and date. \textbf{Partial:} the page names the authors as
+  ``Erik S.\ and Barry Zhang''; the surname Schluntz is from secondary sources only.}}
+\refentry{react}{S.~Yao, J.~Zhao, D.~Yu, N.~Du et al., \emph{ReAct: Synergizing
+  reasoning and acting in language models}, arXiv:2210.03629 (2022).
+  \url{https://arxiv.org/abs/2210.03629}
+  \use{The reason--act--observe loop behind agents.}
+  \checked{arXiv record.}}
+\refentry{swebench}{C.\,E.~Jimenez, J.~Yang, A.~Wettig, S.~Yao et al., \emph{SWE-bench:
+  Can language models resolve real-world GitHub issues?}, arXiv:2310.06770 (2023).
+  \url{https://arxiv.org/abs/2310.06770}
+  \use{2294 real issues from 12 Python repositories, judged by their own tests.}
+  \checked{arXiv record and abstract.}}
+\refentry{metr-horizon}{T.~Kwa, B.~West, J.~Becker, A.~Deng et al., \emph{Measuring AI
+  ability to complete long software tasks}, arXiv:2503.14499 (2025), NeurIPS 2025.
+  \url{https://arxiv.org/abs/2503.14499}
+  \use{The $50\,\%$ time horizon; doubling about every seven months since 2019.}
+  \checked{arXiv record and abstract.}}
+\refentry{contextrot}{\best K.~Hong, A.~Troynikov, J.~Huber, \emph{Context rot: How
+  increasing input tokens impacts LLM performance}, Chroma technical report (14 July
+  2025). \url{https://www.trychroma.com/research/context-rot}
+  \use{18 models; degradation with input length; distractors; focused (${\sim}300$
+  tokens) versus full (${\sim}113$K) prompts; shuffled haystacks easier.}
+  \checked{the report page (old URL \cmd{research.trychroma.com} redirects here).}}
+\refentry{lostmiddle}{N.\,F.~Liu, K.~Lin, J.~Hewitt, A.~Paranjape et al., \emph{Lost in
+  the middle: How language models use long contexts}, arXiv:2307.03172 (2023).
+  \url{https://arxiv.org/abs/2307.03172}
+  \use{Information in the middle of a long context is used worst.}
+  \checked{arXiv record.}}
+\refentry{context-eng}{\best P.~Rajasekaran, E.~Dixon, C.~Ryan, J.~Hadfield (Anthropic
+  Applied AI team), \emph{Effective context engineering for AI agents}, Anthropic
+  engineering blog (29 Sep 2025).
+  \url{https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents}
+  \use{Context as a finite resource; compaction; note-taking; sub-agents; just-in-time
+  retrieval.}
+  \checked{the page: title, date, authors.}}
+\refentry{cc-best}{Anthropic, \emph{Best practices for Claude Code}, Claude Code
+  documentation (living document, no date or author given).
+  \url{https://code.claude.com/docs/en/best-practices}
+  \use{Tool-specific, but its core is general: give the agent a way to verify its work;
+  explore, plan, implement, commit; keep instruction files short; clear context between
+  tasks.}
+  \checked{the page. The former URL
+  \cmd{anthropic.com/engineering/claude-code-best-practices} (2025 blog post) now
+  redirects here.}}
+\refentry{agentsmd}{\emph{AGENTS.md}, an open format for guiding coding agents, stewarded
+  by the Agentic AI Foundation (Linux Foundation). \url{https://agents.md/}
+  \use{Which agents read \cmd{AGENTS.md}.}
+  \checked{the page.}}
+\refentry{skills}{B.~Zhang, K.~Lazuka, M.~Murag, \emph{Equipping agents for the real
+  world with Agent Skills}, Anthropic engineering blog (16 Oct 2025).
+  \url{https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills}
+  \use{Skills and progressive disclosure.}
+  \checked{the page: title, date, authors.}}
+\refentry{mcp}{Anthropic, \emph{Introducing the Model Context Protocol} (25 Nov 2024).
+  \url{https://www.anthropic.com/news/model-context-protocol}; specification at
+  \url{https://modelcontextprotocol.io/}
+  \use{Trends section.}
+  \checked{both pages.}}
+\refentry{willison}{S.~Willison, \emph{Simon Willison's Weblog}.
+  \url{https://simonwillison.net/}
+  \use{Frequent, careful, hands-on notes on LLM tools; good for staying current.}
+  \checked{the site.}}
+\end{enumerate}
+
+\subsection*{Research software engineering}
+\begin{enumerate}[label={[\arabic*]}, ref=\arabic*, resume=refs, leftmargin=*, itemsep=6pt]
+\refentry{wilson-good}{\best G.~Wilson, J.~Bryan, K.~Cranston, J.~Kitzes,
+  L.~Nederbragt, T.\,K.~Teal, \emph{Good enough practices in scientific computing},
+  PLOS Comput.\ Biol.\ \textbf{13}, e1005510 (2017).
+  \url{https://doi.org/10.1371/journal.pcbi.1005510}
+  \use{The minimum set of practices for research code; short and practical.}
+  \checked{Crossref.}}
+\refentry{wilson-best}{G.~Wilson, D.\,A.~Aruliah, C.\,T.~Brown, N.\,P.~Chue Hong et al.,
+  \emph{Best practices for scientific computing}, PLOS Biol.\ \textbf{12}, e1001745
+  (2014). \url{https://doi.org/10.1371/journal.pbio.1001745}
+  \use{The more ambitious predecessor.}
+  \checked{Crossref.}}
+\refentry{turingway}{The Turing Way Community, \emph{The Turing Way: a handbook for
+  reproducible, ethical and collaborative data science}.
+  \url{https://book.the-turing-way.org/}
+  \use{Reference handbook on reproducibility, version control, testing.}
+  \checked{the site; the old address \cmd{the-turing-way.netlify.app} still works.}}
+\refentry{progit}{\best S.~Chacon, B.~Straub, \emph{Pro Git}, 2nd ed.\ (Apress, 2014),
+  free online. \url{https://git-scm.com/book/en/v2}
+  \use{Chapters 2 (basics), 3 (branching), 10 (internals).}
+  \checked{the site.}}
+\refentry{swc-git}{\best Software Carpentry, \emph{Version Control with Git}.
+  \url{https://swcarpentry.github.io/git-novice/}
+  \use{Self-paced git lesson for researchers.}
+  \checked{the site.}}
+\refentry{swc-testing}{The Carpentries Incubator, \emph{Python Testing and Continuous
+  Integration} (alpha). \url{https://carpentries-incubator.github.io/python-testing/}
+  \use{Testing and CI in Python; the ideas transfer to Julia.}
+  \checked{the site. Note: an incubator lesson, not an official Software Carpentry one.}}
+\refentry{scipy-dev}{Scientific Python, \emph{Scientific Python Library Development
+  Guide}. \url{https://learn.scientific-python.org/development/}
+  \use{Packaging, testing and CI for Python research code.}
+  \checked{the site.}}
+\refentry{drwatson}{G.~Datseris, J.~Isensee, S.~Pech, T.~Gál, \emph{DrWatson: the
+  perfect sidekick for your scientific inquiries}, J.\ Open Source Softw.\ \textbf{5},
+  2673 (2020). \url{https://doi.org/10.21105/joss.02673}
+  \use{Citation for DrWatson.}
+  \checked{Crossref and the JOSS page.}}
+\refentry{drwatson-docs}{\best DrWatson.jl documentation.
+  \url{https://juliadynamics.github.io/DrWatson.jl/stable/}
+  \use{\cmd{produce\_or\_load}, \cmd{tagsave}, \cmd{savename}; the ``Workflow
+  tutorial''.}
+  \checked{the pages on saving and naming; \cmd{savename} and \cmd{dict\_list} output
+  also checked by running DrWatson.}}
+\refentry{julia}{J.~Bezanson, A.~Edelman, S.~Karpinski, V.\,B.~Shah, \emph{Julia: A fresh
+  approach to numerical computing}, SIAM Rev.\ \textbf{59}, 65 (2017).
+  \url{https://doi.org/10.1137/141000671}
+  \use{Citation for Julia.}
+  \checked{Crossref.}}
+\refentry{julia-test}{Julia documentation, \emph{Unit Testing} (standard library
+  \cmd{Test}). \url{https://docs.julialang.org/en/v1/stdlib/Test/}
+  \use{\cmd{@test}, \cmd{@testset}; \cmd{isapprox} tolerances (behaviour checked by
+  running Julia 1.13).}
+  \checked{the page.}}
+\refentry{julia-actions}{julia-actions, GitHub Actions for Julia.
+  \url{https://github.com/julia-actions}
+  \use{\cmd{setup-julia}, \cmd{cache}, \cmd{julia-buildpkg}, \cmd{julia-runtest}.}
+  \checked{the organisation page and the \cmd{julia-runtest} repository.}}
+\refentry{matlab-unittest}{MathWorks, \emph{matlab.unittest.TestCase} (MATLAB
+  documentation).
+  \url{https://www.mathworks.com/help/matlab/ref/matlab.unittest.testcase-class.html}
+  \use{Unit tests in MATLAB.}
+  \checked{the page.}}
+\end{enumerate}
+
+\subsection*{Physics of the toy problem}
+\begin{enumerate}[label={[\arabic*]}, ref=\arabic*, resume=refs, leftmargin=*, itemsep=6pt]
+\refentry{krantz}{\best P.~Krantz, M.~Kjaergaard, F.~Yan, T.\,P.~Orlando,
+  S.~Gustavsson, W.\,D.~Oliver, \emph{A quantum engineer's guide to superconducting
+  qubits}, Appl.\ Phys.\ Rev.\ \textbf{6}, 021318 (2019); arXiv:1904.06560.
+  \url{https://doi.org/10.1063/1.5089550}
+  \use{Rotating frame, Rabi, Ramsey, echo, $T_1$, $T_2$, from an experimental viewpoint.}
+  \checked{Crossref and arXiv record.}}
+\refentry{rabi}{I.\,I.~Rabi, \emph{Space quantization in a gyrating magnetic field},
+  Phys.\ Rev.\ \textbf{51}, 652 (1937). \url{https://doi.org/10.1103/PhysRev.51.652}
+  \use{Historical origin of the Rabi formula.}
+  \checked{Crossref.}}
+\refentry{lindblad}{G.~Lindblad, \emph{On the generators of quantum dynamical
+  semigroups}, Commun.\ Math.\ Phys.\ \textbf{48}, 119 (1976).
+  \url{https://doi.org/10.1007/BF01608499}
+  \checked{Crossref.}}
+\refentry{gks}{V.~Gorini, A.~Kossakowski, E.\,C.\,G.~Sudarshan, \emph{Completely positive
+  dynamical semigroups of $N$-level systems}, J.\ Math.\ Phys.\ \textbf{17}, 821 (1976).
+  \url{https://doi.org/10.1063/1.522979}
+  \use{With [\ref{ref:lindblad}]: the general form of a Markovian master equation.}
+  \checked{Crossref.}}
+\refentry{breuer}{H.-P.~Breuer, F.~Petruccione, \emph{The Theory of Open Quantum
+  Systems} (Oxford University Press, 2002).
+  \url{https://doi.org/10.1093/acprof:oso/9780199213900.001.0001}
+  \use{Textbook derivation of the master equation.}
+  \checked{Crossref (the DOI is the 2007 online edition).}}
+\refentry{ramsey}{N.\,F.~Ramsey, \emph{A molecular beam resonance method with separated
+  oscillating fields}, Phys.\ Rev.\ \textbf{78}, 695 (1950).
+  \url{https://doi.org/10.1103/PhysRev.78.695}
+  \checked{Crossref.}}
+\refentry{hahn}{E.\,L.~Hahn, \emph{Spin echoes}, Phys.\ Rev.\ \textbf{80}, 580 (1950).
+  \url{https://doi.org/10.1103/PhysRev.80.580}
+  \checked{Crossref.}}
+\refentry{jaynescummings}{E.\,T.~Jaynes, F.\,W.~Cummings, \emph{Comparison of quantum and
+  semiclassical radiation theories with application to the beam maser},
+  Proc.\ IEEE \textbf{51}, 89 (1963). \url{https://doi.org/10.1109/PROC.1963.1664}
+  \checked{Crossref.}}
+\refentry{qojulia}{S.~Krämer, D.~Plankensteiner, L.~Ostermann, H.~Ritsch,
+  \emph{QuantumOptics.jl: A Julia framework for simulating open quantum systems},
+  Comput.\ Phys.\ Commun.\ \textbf{227}, 109 (2018).
+  \url{https://doi.org/10.1016/j.cpc.2018.02.004}
+  \use{The independent route of block~6.}
+  \checked{Crossref.}}
+\refentry{qojulia-docs}{QuantumOptics.jl documentation. \url{https://docs.qojulia.org/}
+  \use{\cmd{timeevolution.master(tspan, rho0, H, J)}; \cmd{SpinBasis(1//2)} with
+  \cmd{spinup} $= \ket{e}$.}
+  \checked{the page on master equations; basis convention and solver checked by running
+  QuantumOptics.jl 1.2.}}
+\refentry{lsqfit}{LsqFit.jl documentation.
+  \url{https://julianlsolvers.github.io/LsqFit.jl/latest/}
+  \use{\cmd{curve\_fit} with inverse-variance weights; \cmd{coef}, \cmd{stderror}.}
+  \checked{the tutorial page; function names checked by running LsqFit 0.16.}}
+\end{enumerate}
+
+\subsection*{Responsibility and policy}
+\begin{enumerate}[label={[\arabic*]}, ref=\arabic*, resume=refs, leftmargin=*, itemsep=6pt]
+\refentry{nature-rules}{Editorial, \emph{Tools such as ChatGPT threaten transparent
+  science; here are our ground rules for their use}, Nature \textbf{613}, 612 (2023).
+  \url{https://doi.org/10.1038/d41586-023-00191-1}
+  \use{No AI author; document use in methods or acknowledgements.}
+  \checked{Crossref. \textbf{Partial:} the publisher page required a login; the two
+  rules are from consistent secondary reproductions.}}
+\refentry{aps-news}{American Physical Society, \emph{American Physical Society releases
+  updated AI policy for APS journals} (17 June 2026).
+  \url{https://www.aps.org/about/news/2026/06/releases-updated-ai-policy-journals}
+  \checked{the page.}}
+\refentry{aps-policy}{\best APS Journals, \emph{Appropriate Use of AI Tools}.
+  \url{https://journals.aps.org/authors/appropriate-use-ai-tools}
+  \use{Current rules for authors and referees of APS journals.}
+  \checked{the page (undated).}}
+\end{enumerate}
+
+\subsection*{Trends}
+\begin{enumerate}[label={[\arabic*]}, ref=\arabic*, resume=refs, leftmargin=*, itemsep=6pt]
+\refentry{jevons}{W.\,S.~Jevons, \emph{The Coal Question} (Macmillan, London, 1865;
+  2nd ed.\ 1866). Full text of the 2nd edition:
+  \url{https://www.econlib.org/library/YPDBooks/Jevons/jvnCQ.html}
+  \use{The Jevons paradox; Chapter~VII, ``Of the Economy of Fuel''.}
+  \checked{the Econlib text (chapter title and quoted sentence).}}
+\refentry{vibecoding}{A.~Karpathy, post on X introducing ``vibe coding'' (2 Feb 2025).
+  \url{https://x.com/karpathy/status/1886192184808149383}
+  \checked{\textbf{Partial:} the post did not render without login; date and wording
+  from several consistent secondary sources.}}
+\end{enumerate}
+
+\subsection*{Claims on the slides without a checkable source}
+\begin{itemize}
+  \item ``About $0.75$ words per token'' (slide, block~1) is a widely quoted rule of thumb
+        from OpenAI's help pages; the page refused automated access. Section~\ref{sec:llm}
+        supports the number with the Llama~3 figure of $3.94$ characters per token
+        \rf{llama3} instead.
+\end{itemize}

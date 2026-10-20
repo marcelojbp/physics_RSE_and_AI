@@ -1,0 +1,116 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=2.3cm]{geometry}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage[most]{tcolorbox}
+\usepackage{amsmath,amssymb}
+\usepackage{braket}
+\usepackage{textcomp}
+\usepackage{etoolbox}
+% Greek letters and symbols typed directly in \texttt and \cmd arguments.
+\DeclareUnicodeCharacter{0394}{\ensuremath{\Delta}}
+\DeclareUnicodeCharacter{03A9}{\ensuremath{\Omega}}
+\DeclareUnicodeCharacter{03C1}{\ensuremath{\rho}}
+\DeclareUnicodeCharacter{03C0}{\ensuremath{\pi}}
+\DeclareUnicodeCharacter{2248}{\ensuremath{\approx}}
+\usepackage{xurl}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black,
+  citecolor=blue!50!black]{hyperref}
+
+% ---------------------------------------------------------------------------
+% Edit these before sending the document out.
+\newcommand{\coursedate}{\textbf{[DATE]}}
+\newcommand{\courserepourl}{\url{https://github.com/marcelojbp/physics_RSE_and_AI}}
+% ---------------------------------------------------------------------------
+
+\definecolor{codebg}{gray}{0.95}
+\lstset{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{codebg},
+  frame=single, rulecolor=\color{gray!40},
+  breaklines=true, columns=fullflexible, keepspaces=true,
+  showstringspaces=false, upquote=true, escapeinside={(*}{*)},
+  xleftmargin=3pt, xrightmargin=3pt, aboveskip=6pt, belowskip=6pt,
+  extendedchars=true, inputencoding=utf8,
+  literate=
+    {Δ}{{$\Delta$}}1 {Ω}{{$\Omega$}}1 {π}{{$\pi$}}1 {ρ}{{$\rho$}}1
+    {σ}{{$\sigma$}}1 {θ}{{$\theta$}}1 {φ}{{$\varphi$}}1 {δ}{{$\delta$}}1
+    {Γ}{{$\Gamma$}}1 {μ}{{$\mu$}}1 {ħ}{{$\hbar$}}1 {≈}{{$\approx$}}1
+    {≤}{{$\leq$}}1 {≥}{{$\geq$}}1 {±}{{$\pm$}}1 {→}{{$\to$}}1
+    {⟨}{{$\langle$}}1 {⟩}{{$\rangle$}}1 {₁}{{$_1$}}1 {₂}{{$_2$}}1
+    {τ}{{$\tau$}}1
+}
+
+\newtcolorbox{note}[1][Note]{colback=blue!4, colframe=blue!45!black,
+  fonttitle=\bfseries, title=#1, boxrule=0.6pt, arc=2pt}
+\newtcolorbox{warn}[1][Watch out]{colback=orange!6, colframe=orange!70!black,
+  fonttitle=\bfseries, title=#1, boxrule=0.6pt, arc=2pt}
+% Questions participants may ask, with short answers (mainly for the instructor).
+\newtcolorbox{qa}[1][Questions you may get]{colback=gray!4, colframe=gray!55!black,
+  fonttitle=\bfseries, title=#1, boxrule=0.6pt, arc=2pt}
+% Placeholders: code from DrivenSpin/ that does not exist yet, text to be extended.
+\newtcolorbox{placeholder}[1][Placeholder]{colback=red!4, colframe=red!60!black,
+  fonttitle=\bfseries, title=#1, boxrule=0.6pt, arc=2pt}
+
+\newcommand{\cmd}[1]{\texttt{#1}}
+\newcommand{\onslides}[1]{\par\noindent\textit{On the slides:} #1\par}
+\newcommand{\Q}[1]{\par\smallskip\noindent\textbf{Q: #1}\par\noindent}
+
+% Physics (PLAN.md section 5)
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\ee}{\mathrm{e}}
+\newcommand{\tr}{\mathrm{tr}}
+\newcommand{\Pe}{P_e}
+\newcommand{\OmR}{\Omega_{\mathrm{R}}}
+\newcommand{\Dis}{\mathcal{D}}
+
+% References: \rf{key} or \rf{key1,key2} link to entries of the reference list.
+\newcommand{\rf}[1]{[\def\rfsep{}\forcsvlist{\rfone}{#1}]}
+\newcommand{\rfone}[1]{\rfsep\ref{ref:#1}\def\rfsep{, }}
+
+\setlist{itemsep=2pt, topsep=4pt}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+
+\title{\textbf{AI for Physics Projects}\\[4pt]
+\large Course notes: background, reference cards and annotated references}
+\author{}
+\date{Course of \coursedate}
+
+\begin{document}
+\maketitle
+\vspace{-1.5em}
+
+\input{sections/00_intro}
+
+\tableofcontents
+\clearpage
+
+\part{Notes, block by block}
+\input{sections/01_thesis}
+\input{sections/02_llm}
+\input{sections/03_agents}
+\input{sections/04_context}
+\input{sections/05_git}
+\input{sections/06_structure}
+\input{sections/07_verification}
+\input{sections/08_physics}
+\input{sections/09_failures}
+\input{sections/10_trends}
+
+\part{Reference cards}
+\input{sections/20_git_cheatsheet}
+\input{sections/21_checklist}
+
+\clearpage
+\part{References}
+\input{sections/30_references}
+
+\end{document}

@@ -1,0 +1,120 @@
+\section{Failure modes and responsibility}
+% Block 8 of PLAN.md, 15 min.  Message: plausible output hides real errors; the
+% tests you wrote decide which errors you can see; you remain the author.
+% Start with the planted bug (5 min, everyone applies it), then the gallery.
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{The planted bug}{Five minutes, on your own repository}
+\begin{terminal}
+$ git apply ../course/DrivenSpin/exercises/planted_bug.patch
+$ julia --project scripts/rabi.jl        # make the plot: does it look right?
+$ julia --project -e 'using Pkg; Pkg.test()'
+\end{terminal}
+  \begin{itemize}
+    \item<2-> A one-character change, the kind an agent makes while ``tidying up''
+    \item<3-> Find it with \cmd{git diff}; undo it with \cmd{git restore .}
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Plausible is not correct}{$\Delta = 0$: which curve is right?}
+  \vspace{1ex}
+  \begin{center}
+    \begin{tikzpicture}[x=26mm,y=24mm]
+      \draw[unibasLightGrey,line width=0.4pt] (0,0) -- (3,0) (0,0) -- (0,1.05);
+      \node[lbl,below] at (3,0) {$\Omega t/2\pi$};
+      \node[lbl,left] at (0,1) {$1$};
+      \node[lbl,left] at (0,0) {$0$};
+      \node[lbl,rotate=90,anchor=south] at (-0.15,0.5) {$\Pe$};
+      \foreach \x in {1,2,3} \node[lbl,below] at (\x,0) {$\x$};
+      \draw[figModel,line width=1pt,domain=0:3,samples=150,smooth]
+        plot (\x,{sin(180*\x)^2});
+      \node[font=\scriptsize,text=figModel,anchor=west] at (3.02,0.9) {A};
+      \onslide<2->{%
+        \draw[figTool,line width=1pt,domain=0:3,samples=200,smooth]
+          plot (\x,{sin(360*\x)^2});
+        \node[font=\scriptsize,text=figTool,anchor=west] at (3.02,0.55) {B};}
+    \end{tikzpicture}
+  \end{center}
+  \begin{itemize}
+    \item<3-> Both are smooth, bounded, periodic: both ``look like Rabi oscillations''
+    \item<4-> A is $\sin^2(\Omega t/2)$: correct. B is the bug, $\Omega$ instead of $\Omega/2$
+    \item<5-> The eye checks shape; the test checks \term{the number}
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{The bug your tests cannot see}{A sign in the Hamiltonian term}
+  \begin{equation*}
+    -i[H, \rho] \;\longrightarrow\; +i[H, \rho]
+  \end{equation*}
+
+  \begin{itemize}
+    \item<2-> Every population is unchanged: Rabi, decay, Ramsey and echo tests all pass
+    \item<3-> Only phases flip: at $\Delta = 0$, $\langle\sigma_y\rangle(t) = \sin(\Omega t)$
+          becomes $-\sin(\Omega t)$
+    \item<4-> Your tests decide which bugs you can see: test every quantity you will publish
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Rogues' gallery}{What goes wrong, and the defence}
+  \vspace{1ex}
+  \renewcommand{\arraystretch}{1.5}
+  \begin{tabularx}{\linewidth}{@{}p{0.42\linewidth}X@{}}
+    \toprule
+    \textbf{Failure} & \textbf{Defence} \\
+    \midrule
+    Invented or misquoted reference & Open it; check that it says that \\
+    \reveal<2>{Factor of 2, wrong sign}    & \reveal<2>{Analytic and limiting-case tests} \\
+    \reveal<3>{Test weakened to pass}      & \reveal<3>{Commit tests first; read every test diff} \\
+    \reveal<4>{Convention silently changed} & \reveal<4>{Conventions in \cmd{AGENTS.md}, enforced by tests} \\
+    \bottomrule
+  \end{tabularx}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Rogues' gallery}{Quieter failures}
+  \vspace{1ex}
+  \renewcommand{\arraystretch}{1.5}
+  \begin{tabularx}{\linewidth}{@{}p{0.42\linewidth}X@{}}
+    \toprule
+    \textbf{Failure} & \textbf{Defence} \\
+    \midrule
+    Invented or outdated function names & Run it; pin versions in \cmd{Manifest.toml} \\
+    \reveal<2>{Hz where rad/\textmu s was meant}   & \reveal<2>{Units in names and docstrings; a test with a known period} \\
+    \reveal<3>{Confident summary of a paper not read} & \reveal<3>{Ask for the page and equation; check it} \\
+    \reveal<4>{``All tests pass'' that were never run} & \reveal<4>{Run them yourself; CI runs them anyway} \\
+    \bottomrule
+  \end{tabularx}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{You are the author}
+  \begin{itemize}
+    \item \textbf{Accountability}: the agent is not an author; every claim in the paper is yours
+    \item<2-> \textbf{Data}: unpublished data, collaborators' code and personal data
+          leave your machine when the agent reads them; check what your institution allows
+    \item<3-> \textbf{Disclosure}: journals ask how AI was used; know your journal's policy
+    \item<4-> \textbf{Reproducibility}: record which tool and model helped, and when
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{Record what you used}
+\begin{terminal}
+$ git log -1
+commit e4b1a20...
+Author: Marcelo Janovitch
+Date:   Tue Oct 20 14:02:11 2026 +0200
+
+    Add Ramsey sequence with fringe-frequency test
+
+    Assisted-by: <agent> (<model>)
+\end{terminal}
+  \begin{itemize}
+    \item<2-> A trailer in the commit message: costs nothing, searchable later
+    \item<3-> Some agents add one themselves (e.g.\ \cmd{Co-Authored-By}); keep it
+    \item<4-> In the paper: one sentence in the acknowledgements or methods
+  \end{itemize}
+\end{frame}

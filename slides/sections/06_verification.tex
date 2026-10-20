@@ -1,0 +1,168 @@
+\section{Verification in physics}
+% Block 6 of PLAN.md, 15 min.  Message: physics gives us checks that software
+% engineering does not have; turn each into a test, and write the tests before
+% the implementation.  Every example is one the participants meet in the hands-on.
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Physics gives you the checks}{Exact statements}
+  \vspace{1ex}
+  \renewcommand{\arraystretch}{1.55}
+  \begin{tabularx}{\linewidth}{@{}p{0.3\linewidth}X@{}}
+    \toprule
+    \textbf{Check} & \textbf{Driven spin} \\
+    \midrule
+    Analytic solution
+      & $\Pe(t) = (\Omega^2/\OmR^2)\sin^2(\OmR t/2)$ \\
+    \reveal<2>{Limiting case}
+      & \reveal<2>{$\Omega = 0$: nothing moves; $\Delta = 0$, $t = \pi/\Omega$: full inversion} \\
+    \reveal<3>{Structure}
+      & \reveal<3>{$\tr\rho = 1$, $\rho = \rho^\dagger$, eigenvalues of $\rho \geq 0$} \\
+    \reveal<4>{Symmetry}
+      & \reveal<4>{$\Pe$ is even in $\Delta$} \\
+    \bottomrule
+  \end{tabularx}
+
+  \vspace{1ex}
+  {\scriptsize\color{unibasGrey} $\Pe$: excited-state population, starting in $\ket{g}$;
+   $\OmR = \sqrt{\Omega^2 + \Delta^2}$; $\rho$: density matrix}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Physics gives you the checks}{Consistency}
+  \vspace{1ex}
+  \renewcommand{\arraystretch}{1.55}
+  \begin{tabularx}{\linewidth}{@{}p{0.3\linewidth}X@{}}
+    \toprule
+    \textbf{Check} & \textbf{Driven spin} \\
+    \midrule
+    Convergence
+      & The result does not change when you halve the time step \\
+    \reveal<2>{Independent route}
+      & \reveal<2>{Your solver against QuantumOptics.jl} \\
+    \reveal<3>{Bounds and units}
+      & \reveal<3>{$0 \leq \Pe \leq 1$; $T_2 \leq 2T_1$; rates in rad/\textmu s} \\
+    \reveal<4>{Injection--recovery}
+      & \reveal<4>{Simulate data with a known $T_2$, fit it: you get $T_2$ back} \\
+    \bottomrule
+  \end{tabularx}
+
+  \vspace{1ex}
+  {\scriptsize\color{unibasGrey} $T_1$: energy relaxation time; $T_2$: coherence time}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{Convergence}{Is the number converged, and is the method what it claims?}
+  \begin{equation*}
+    \varepsilon(\delta t) \simeq C\,\delta t^{\,p}
+    \quad\Longrightarrow\quad
+    \frac{\varepsilon(\delta t)}{\varepsilon(\delta t/2)} \simeq 2^{p}
+  \end{equation*}
+\begin{julia}
+ρT(dt) = last(lindblad(H, ρ0, [T]; T1, T2, dt))           # fixed-step RK4
+err(dt) = abs(excited_population(ρT(dt)) - exp(-T / T1))  # free decay from |e⟩
+@test log2(err(0.02) / err(0.01)) ≈ 4 atol = 0.2          # RK4: p = 4
+\end{julia}
+  \begin{itemize}
+    \item $\varepsilon$: error at fixed time $T$; $\delta t$: step; $p$: order of the method
+    \item<2-> Catches a wrong integrator, a missing term, an unconverged result
+    \item<3-> Same idea for any cutoff: grid size, Fock space, number of samples
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{Two independent routes}
+\begin{julia}
+using QuantumOptics
+b = SpinBasis(1//2)                                     # |e⟩ = spin up
+H = Δ/2*sigmaz(b) + Ω/2*sigmax(b)
+c_ops = [sqrt(1/T1)*sigmam(b), sqrt(1/(2Tφ))*sigmaz(b)]
+_, ρt = timeevolution.master(ts, dm(spindown(b)), H, c_ops)
+@test [real(expect(projector(spinup(b)), ρ)) for ρ in ρt] ≈ my_Pe  rtol = 1e-6
+\end{julia}
+  \begin{itemize}
+    \item<2-> Different method, different author: their errors are unlikely to coincide
+    \item<3-> Disagreement does not tell you who is wrong; agreement is strong evidence
+    \item<4-> Also for derivations: a numerical check of every analytic result
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Injection--recovery}{The experimentalist's test}
+  \vspace{1ex}
+  \begin{center}
+    \begin{tikzpicture}[node distance=7mm]
+      \node[box=figHuman] (p) {\textbf{Choose}\\ $\theta^\ast$};
+      \node[box=figTool,right=of p] (s) {\textbf{Simulate}\\ data + noise};
+      \node[box=figModel,right=of s] (f) {\textbf{Fit}\\ your pipeline};
+      \node[box=figHuman,right=of f] (c) {\textbf{Compare}\\ $\hat\theta \pm \sigma$ vs $\theta^\ast$};
+      \foreach \a/\b in {p/s,s/f,f/c} \draw[flow] (\a) -- (\b);
+    \end{tikzpicture}
+  \end{center}
+  \begin{equation*}
+    \left|\hat\theta - \theta^\ast\right| < 3\sigma
+  \end{equation*}
+
+  \begin{itemize}
+    \item $\theta^\ast$: true parameters; $\hat\theta$: fitted values; $\sigma$: reported errors
+    \item<2-> Tests the whole pipeline: model, noise, fit and error bars
+    \item<3-> Over many seeds, $(\hat\theta - \theta^\ast)/\sigma$ must look like a unit
+          Gaussian: are the error bars honest?
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}[fragile]{Tests first}{The tests are the specification you sign}
+  \begin{center}
+    \begin{tikzpicture}[node distance=4mm]
+      \node[st=figHuman] (a) {\textbf{You}\\{\scriptsize list the checks}};
+      \node[st=figModel,right=of a] (b) {\textbf{Agent}\\{\scriptsize writes tests}};
+      \node[st=figHuman,right=of b] (c) {\textbf{You}\\{\scriptsize read, commit}};
+      \node[st=figModel,right=of c] (d) {\textbf{Agent}\\{\scriptsize implements}};
+      \node[st=figHuman,right=of d] (e) {\textbf{You}\\{\scriptsize read the diff}};
+      \foreach \x/\y in {a/b,b/c,c/d,d/e} \draw[flow] (\x) -- (\y);
+    \end{tikzpicture}
+  \end{center}
+\begin{onlyenv}<2->
+\begin{prompt}
+Implement lindblad() in src/DrivenSpin.jl until all tests pass.
+Do not modify anything in test/. If a test seems wrong, stop and tell me why.
+\end{prompt}
+\end{onlyenv}
+  \begin{itemize}
+    \item<2-> Committed tests: a fixed target the agent cannot move unnoticed
+    \item<3-> Writing them first forces you to say what ``correct'' means
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Who checks the tests?}
+  \begin{itemize}
+    \item An agent writing the code and its tests grades its own homework
+    \item<2-> Tests copied from the implementation check nothing:
+          test against \emph{physics}, not against the code
+    \item<3-> Break the code on purpose: every important test must fail
+    \item<4-> You read every line of \cmd{test/}; it is short
+  \end{itemize}
+
+  \vspace{3ex}
+  \onslide<5->{\centering\ckeybox[0.7\linewidth]{The tests are the part you cannot delegate}\par}
+\end{frame}
+
+% ------------------------------------------------------------------------------
+\begin{frame}{Every claim gets a status}{From my own projects}
+  \renewcommand{\arraystretch}{1.35}
+  \begin{tabularx}{\linewidth}{@{}l X@{}}
+    \toprule
+    \textbf{Status} & \textbf{Meaning} \\
+    \midrule
+    \textit{verified}  & Reproduced by a second, independent route \\
+    \reveal<2>{\textit{fixed}}     & \reveal<2>{Wrong as stated; corrected} \\
+    \reveal<3>{\textit{weakened}}  & \reveal<3>{True only under a narrower condition, now stated} \\
+    \reveal<4>{\textit{retracted}} & \reveal<4>{Does not survive} \\
+    \reveal<5>{\textit{open}}      & \reveal<5>{Not decidable with the tools at hand} \\
+    \bottomrule
+  \end{tabularx}
+
+  \vspace{1ex}
+  \onslide<6->{{\small Every result an agent produces gets one, in a file in the repository}}
+\end{frame}

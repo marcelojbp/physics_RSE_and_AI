@@ -1,0 +1,13 @@
+diff --git a/src/DrivenSpin.jl b/src/DrivenSpin.jl
+index 750071f..4e97989 100644
+--- a/src/DrivenSpin.jl
++++ b/src/DrivenSpin.jl
+@@ -30,7 +30,7 @@ Rotating-frame Hamiltonian H = (Δ/2) σz + (Ω/2) σx of a spin driven at Rabi
+ frequency `Ω` and detuning `Δ` (both in rad/μs).
+ """
+ function hamiltonian(Δ, Ω)
+-    return Δ/2 * σz + Ω/2 * σx
++    return Δ/2 * σz + Ω * σx
+ end
+ 
+ """
