@@ -17,6 +17,7 @@
 *.vrb
 *.xdv
 *.pdf
+!setup/installation.pdf
 
 # Julia: results and plots are reproduced, not stored
 DrivenSpin/data/

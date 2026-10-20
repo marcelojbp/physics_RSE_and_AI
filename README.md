@@ -17,22 +17,17 @@ Claude Code or Codex.
 
 ## Before the course
 
-Follow the installation guide, [`setup/installation.tex`](setup/installation.tex). It
-covers macOS, Windows and Linux: Git, the GitHub CLI with SSH, VS Code, Julia and its
-packages, and a quick test of your AI agent. Compile it with
-
-```bash
-latexmk -pdf -cd setup/installation.tex
-```
-
-or ask the instructor for the PDF. Plan for 45–60 minutes, most of it waiting while
+Follow the installation guide,
+**[`setup/installation.pdf`](setup/installation.pdf)** (open it on GitHub, or use the
+download button there). It covers macOS, Windows and Linux: Git, the GitHub CLI with
+SSH, VS Code, Julia and its packages, and a quick test of your AI agent. Plan for 45–60 minutes, most of it waiting while
 Julia packages compile.
 
 ## Contents
 
 | Folder | Content | Status |
 |---|---|---|
-| [`setup/`](setup/) | Installation guide and `setup_julia.jl` | Ready |
+| [`setup/`](setup/) | Installation guide (PDF and LaTeX source) and `setup_julia.jl` | Ready |
 | [`slides/`](slides/) | Course slides | Not published yet |
 | [`DrivenSpin/`](DrivenSpin/) | Hands-on Julia project | Not published yet |
 | [`handout/`](handout/) | Summary and references to keep | Not published yet |
