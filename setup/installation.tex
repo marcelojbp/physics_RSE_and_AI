@@ -1,0 +1,548 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=2.3cm]{geometry}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage[most]{tcolorbox}
+\usepackage{amssymb}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+
+% ---------------------------------------------------------------------------
+% Edit these before sending the document out.
+\newcommand{\coursedate}{\textbf{[DATE]}}
+\newcommand{\instructorcontact}{\textbf{[NAME, EMAIL]}}
+\newcommand{\courserepo}{\detokenize{git@github.com:marcelojbp/physics_RSE_and_AI.git}}  % SSH address
+% ---------------------------------------------------------------------------
+
+\definecolor{codebg}{gray}{0.95}
+\lstset{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{codebg},
+  frame=single, rulecolor=\color{gray!40},
+  breaklines=true, columns=fullflexible, keepspaces=true,
+  showstringspaces=false, upquote=true, escapeinside={(*}{*)},
+  xleftmargin=3pt, xrightmargin=3pt, aboveskip=6pt, belowskip=6pt
+}
+
+\newtcolorbox{note}[1][Note]{colback=blue!4, colframe=blue!45!black,
+  fonttitle=\bfseries, title=#1, boxrule=0.6pt, arc=2pt}
+\newtcolorbox{warn}[1][Watch out]{colback=orange!6, colframe=orange!70!black,
+  fonttitle=\bfseries, title=#1, boxrule=0.6pt, arc=2pt}
+
+\newcommand{\cmd}[1]{\texttt{#1}}
+
+\setlist{itemsep=2pt, topsep=4pt}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+
+\title{\textbf{AI for Physics Projects}\\[4pt]
+\large Setup instructions for macOS, Windows and Linux}
+\author{}
+\date{Please complete \emph{before} the course on \coursedate}
+
+\begin{document}
+\maketitle
+\vspace{-1.5em}
+
+\begin{note}[Why this matters]
+The hands-on session lasts one hour. If we spend it installing software, we lose it.
+Plan for \textbf{45--60 minutes}, most of it unattended while Julia packages
+download and compile. If anything fails, send the error message to
+\instructorcontact{} before the course; do not wait until the day.
+\end{note}
+
+\tableofcontents
+
+% ===========================================================================
+\section{What you will install, and why}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\textwidth}{@{}l l X@{}}
+\toprule
+\textbf{Tool} & \textbf{Required?} & \textbf{Role in the course} \\
+\midrule
+Git              & required & Version control: the undo button and lab notebook that make it safe to let an agent edit your files. \\
+GitHub account   & required & Hosts repositories; runs automated tests (continuous integration, CI). \\
+GitHub CLI (\cmd{gh}) & required & Logs you into GitHub and sets up an SSH key for Git in one step. \\
+Julia (via \cmd{juliaup}) & required & The language of all examples. \\
+Julia packages   & required & DrWatson (project structure), QuantumOptics, OrdinaryDiffEq, LsqFit, CairoMakie, JLD2, Revise. \\
+VS Code + Julia extension & required & Editor; also the easiest way to \emph{read diffs}, a central skill of the course. \\
+AI coding agent  & required & An LLM tool that works directly in a folder on your computer (e.g.\ Claude Code or Codex). See Section~\ref{sec:agent}. \\
+Course repository & required & Slides, exercises and the hands-on project; you clone it at the end of the setup. \\
+GitHub Desktop   & optional & Graphical Git client (macOS and Windows only). \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\textbf{Requirements.}
+\begin{itemize}
+  \item About \textbf{6\,GB} of free disk space (Julia packages are the bulk of it).
+  \item Permission to install software. On a university-managed laptop you may need
+        IT support; ask \emph{now}, not the day before.
+  \item A working internet connection without a restrictive proxy. If your institute
+        uses one, see Section~\ref{sec:troubleshooting}.
+\end{itemize}
+
+\textbf{Order.} Do Section~\ref{sec:accounts} (accounts), then \emph{only} the
+section for your operating system (\ref{sec:macos}, \ref{sec:windows} or
+\ref{sec:linux}), then Sections~\ref{sec:config}--\ref{sec:verify}, which are the
+same for everyone.
+
+\textbf{Terminal.} Several steps use a terminal:
+\begin{itemize}
+  \item \textbf{macOS:} \emph{Terminal} (Applications $\to$ Utilities).
+  \item \textbf{Windows:} \emph{Terminal} or \emph{PowerShell} from the Start menu.
+        Do \emph{not} use the old \emph{Command Prompt} (\cmd{cmd.exe}).
+  \item \textbf{Linux:} your usual terminal emulator.
+\end{itemize}
+Type or paste each command, then press Enter. Lines starting with \cmd{\#} are
+comments; you do not need to type them.
+
+% ===========================================================================
+\section{Accounts}\label{sec:accounts}
+
+\subsection{GitHub}
+\begin{enumerate}
+  \item Create a free account at \url{https://github.com/signup}.
+        Use an email address you will keep; your university address also qualifies
+        you for free extras via \url{https://education.github.com}.
+  \item Note your \textbf{username} and the \textbf{email} you registered with;
+        you will need both in Section~\ref{sec:gitconfig}.
+\end{enumerate}
+
+\subsection{An AI coding agent}\label{sec:agent}
+You need access to an LLM with \emph{local agent} capabilities: a tool that runs on
+your computer, inside a project folder, and can read and edit files and run commands
+(with your permission). A chat window in the browser is \emph{not} enough.
+Examples are \textbf{Claude Code} (Anthropic) and \textbf{Codex} (OpenAI); use
+whichever matches the subscription you already have.
+
+Install it following its own instructions, and make sure that before the course you
+can (i) start it in a folder and (ii) log in. Section~\ref{sec:agent-test} has a
+one-minute test. The course does not depend on which agent you use.
+
+% ===========================================================================
+\section{macOS}\label{sec:macos}
+
+Works on Apple Silicon (M1 and later) and Intel Macs, macOS 13 or newer.
+
+\subsection{Homebrew (package manager)}
+Homebrew installs and updates developer tools with one command each. Check
+whether you already have it:
+\begin{lstlisting}
+brew --version
+\end{lstlisting}
+If this prints a version, skip to Section~\ref{sec:mac-tools}. Otherwise install it:
+\begin{lstlisting}
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+\end{lstlisting}
+It will ask for your Mac password (nothing appears as you type; that is normal) and
+may install the \emph{Xcode Command Line Tools}, which takes a few minutes.
+
+\begin{warn}[Apple Silicon: read the last lines of the output]
+At the end, Homebrew prints ``Next steps'' with two or three commands that add
+\cmd{brew} to your \cmd{PATH} (they contain \cmd{/opt/homebrew/bin/brew shellenv}).
+\textbf{Copy and run them exactly as printed}, then close and reopen Terminal.
+\end{warn}
+
+\subsection{Git, GitHub CLI, VS Code, GitHub Desktop}\label{sec:mac-tools}
+\begin{lstlisting}
+brew install git gh
+brew install --cask visual-studio-code
+brew install --cask github          # optional: GitHub Desktop
+\end{lstlisting}
+macOS ships an older Git with the Xcode tools; the Homebrew version takes precedence
+once \cmd{brew} is on your \cmd{PATH}.
+
+\subsection{Julia}
+Install \cmd{juliaup}, the official Julia version manager:
+\begin{lstlisting}
+curl -fsSL https://install.julialang.org | sh
+\end{lstlisting}
+Accept the defaults (press Enter). \textbf{Close and reopen Terminal}, then check:
+\begin{lstlisting}
+julia --version
+\end{lstlisting}
+Do not install Julia through \cmd{brew install julia} or from a \cmd{.dmg}; use
+\cmd{juliaup} so everyone has the same setup. (\cmd{brew install juliaup} is also fine,
+but install \cmd{juliaup} only one way, not both.)
+
+Continue with Section~\ref{sec:config}.
+
+% ===========================================================================
+\section{Windows}\label{sec:windows}
+
+Windows 10 (version 1809 or later) or Windows 11. All commands below run in
+\textbf{PowerShell} or \textbf{Windows Terminal}, not in Command Prompt.
+We use \cmd{winget}, the package manager built into Windows. Check it works:
+\begin{lstlisting}
+winget --version
+\end{lstlisting}
+If the command is not found, install \emph{App Installer} from the Microsoft Store
+and reopen the terminal.
+
+\subsection{Git}
+\begin{lstlisting}
+winget install --id Git.Git -e --source winget
+\end{lstlisting}
+This installs \emph{Git for Windows}, which includes \emph{Git Bash}. Several AI agents
+use Git Bash on Windows, so do not skip this step even if you plan to use GitHub Desktop.
+If you install Git from \url{https://git-scm.com} instead, the default options are
+fine; in particular keep \emph{``Git from the command line and also from 3rd-party
+software''} and \emph{``Checkout Windows-style, commit Unix-style line endings''}.
+
+\subsection{GitHub CLI, VS Code, GitHub Desktop}
+\begin{lstlisting}
+winget install --id GitHub.cli -e
+winget install --id Microsoft.VisualStudioCode -e
+winget install --id GitHub.GitHubDesktop -e     # optional
+\end{lstlisting}
+
+\subsection{Julia}
+\begin{lstlisting}
+winget install --name Julia --id 9NJNWW8PVKMN -e -s msstore
+\end{lstlisting}
+This installs \cmd{juliaup} together with the current stable Julia. If the Microsoft
+Store is blocked on your machine, download the installer from
+\url{https://julialang.org/downloads/} instead.
+
+\begin{warn}[Reopen the terminal]
+After installing, \textbf{close all terminal windows and open a new one}; otherwise the
+new commands are not found. Then check:
+\begin{lstlisting}
+git --version
+gh --version
+code --version
+julia --version
+\end{lstlisting}
+\end{warn}
+
+Continue with Section~\ref{sec:config}.
+
+% ===========================================================================
+\section{Linux}\label{sec:linux}
+
+Commands are given for Ubuntu/Debian, Fedora and Arch. Use the line for your
+distribution.
+
+\subsection{Git and curl}
+\begin{lstlisting}
+sudo apt update && sudo apt install -y git curl     # Ubuntu / Debian
+sudo dnf install -y git curl                        # Fedora
+sudo pacman -S --needed git curl                    # Arch
+\end{lstlisting}
+
+\subsection{GitHub CLI}
+\begin{lstlisting}
+sudo dnf install -y gh                              # Fedora
+sudo pacman -S github-cli                           # Arch
+\end{lstlisting}
+On \textbf{Ubuntu/Debian}, the version in the default repositories is often outdated.
+Follow the official instructions (one copy-paste block) at
+\url{https://github.com/cli/cli/blob/trunk/docs/install_linux.md}.
+
+\subsection{VS Code}
+\begin{itemize}
+  \item \textbf{Ubuntu/Debian:} download the \cmd{.deb} file from
+        \url{https://code.visualstudio.com/download}, then
+\begin{lstlisting}
+sudo apt install ./code_*.deb
+\end{lstlisting}
+  \item \textbf{Fedora:} download the \cmd{.rpm} file from the same page, then
+        \cmd{sudo dnf install ./code-*.rpm}.
+  \item \textbf{Arch:} \cmd{visual-studio-code-bin} from the AUR.
+\end{itemize}
+These packages add Microsoft's repository, so VS Code updates with your system.
+GitHub Desktop has no official Linux version; use VS Code's built-in Git view instead.
+
+\subsection{Julia}
+\begin{lstlisting}
+curl -fsSL https://install.julialang.org | sh
+\end{lstlisting}
+Accept the defaults, \textbf{close and reopen the terminal}, and check
+\cmd{julia --version}. Do not use the \cmd{julia} package from your distribution;
+it is usually outdated or built differently.
+
+Continue with Section~\ref{sec:config}.
+
+% ===========================================================================
+\section{Configuration (all systems)}\label{sec:config}
+
+\subsection{Git}\label{sec:gitconfig}
+Tell Git who you are. Use the \textbf{same email as your GitHub account}, otherwise
+your commits will not be linked to you.
+\begin{lstlisting}
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+git config --global init.defaultBranch main
+git config --global core.editor "code --wait"
+git config --global pull.rebase false
+\end{lstlisting}
+The last three are recommended defaults: new repositories start on a branch called
+\cmd{main}, matching GitHub; when Git needs you to write a message it opens VS Code
+instead of \cmd{vim}; and \cmd{git pull} merges instead of stopping with
+``\emph{Need to specify how to reconcile divergent branches}''.
+Line endings (one command, depending on your system):
+\begin{lstlisting}
+git config --global core.autocrlf input     # macOS and Linux
+git config --global core.autocrlf true      # Windows
+\end{lstlisting}
+Check your settings with \cmd{git config --global --list}.
+
+\subsection{Connect Git to GitHub (SSH)}\label{sec:ssh}
+In this course Git talks to GitHub over \textbf{SSH}: your computer holds a private
+key, GitHub holds the matching public key, and no password is ever typed. The GitHub
+CLI creates the key and registers it with GitHub in one go:
+\begin{lstlisting}
+gh auth login
+\end{lstlisting}
+Answer the questions as follows:
+\begin{enumerate}
+  \item Where do you use GitHub? $\to$ \textbf{GitHub.com}
+  \item Preferred protocol for Git operations? $\to$ \textbf{SSH}
+  \item Generate a new SSH key to add to your GitHub account? $\to$ \textbf{Yes}\\
+        (If you already have a key, it asks instead whether to \emph{upload} your
+        existing public key; choose that key.)
+  \item Enter a passphrase for your new SSH key $\to$ press \textbf{Enter} to leave it
+        empty, unless you already know how to use an SSH agent (see the box below).
+  \item Title for your SSH key $\to$ accept the default, or type the name of this
+        computer.
+  \item How would you like to authenticate? $\to$ \textbf{Login with a web browser}
+\end{enumerate}
+Copy the one-time code it shows, press Enter, paste the code in the browser and
+approve. Then check both the GitHub login and the SSH connection:
+\begin{lstlisting}
+gh auth status
+ssh -T git@github.com
+\end{lstlisting}
+\cmd{gh auth status} should say \emph{``Logged in to github.com account \ldots''} and
+\emph{``Git operations protocol: ssh''}. The first time you run \cmd{ssh -T}, it asks
+\emph{``Are you sure you want to continue connecting?''}: type \textbf{yes}. It should
+then answer \emph{``Hi \textless username\textgreater! You've successfully
+authenticated, but GitHub does not provide shell access.''} That message means it
+worked.
+
+\begin{note}[Passphrase or not?]
+The key file is what proves you are you, so anyone who copies it can push as you.
+A passphrase protects it, but you then have to unlock it once per session.
+On \textbf{macOS} this is painless: add these lines to the file \cmd{\textasciitilde/.ssh/config}
+(create it if it does not exist) and macOS remembers the passphrase in its keychain:
+\begin{lstlisting}
+Host github.com
+  AddKeysToAgent yes
+  UseKeychain yes
+\end{lstlisting}
+On Windows and Linux, a passphrase requires running an SSH agent; if you have never
+done this, leave the passphrase empty for now.
+\end{note}
+
+\textbf{Cloning.} Always copy the \textbf{SSH} address of a repository
+(\cmd{git@github.com:user/repo.git}), not the HTTPS one: on GitHub, click the green
+\emph{Code} button and choose the \emph{SSH} tab. \cmd{gh repo clone user/repo} uses
+SSH automatically.
+
+\subsection{VS Code}
+\begin{enumerate}
+  \item \textbf{macOS only:} open VS Code, press \cmd{Cmd+Shift+P}, type
+        \emph{shell command}, and choose
+        \emph{``Shell Command: Install `code' command in PATH''}.
+        (Windows and Linux do this automatically.)
+  \item Install the Julia extension from a terminal:
+\begin{lstlisting}
+code --install-extension julialang.language-julia
+\end{lstlisting}
+        Many AI agents also offer a VS Code extension; installing it is optional.
+  \item Open VS Code once and click the \emph{Source Control} icon in the left bar.
+        This is where we will read diffs during the course.
+\end{enumerate}
+
+\subsection{Course material and Julia packages}\label{sec:julia-pkgs}
+This step copies the course repository to your computer (this also tests your SSH
+connection), then downloads and compiles everything the hands-on session needs. It
+takes \textbf{10--20 minutes}; start it and let it run. Create a folder for the
+course in your home folder and clone the repository into it:
+\begin{lstlisting}
+cd ~
+mkdir ai-course
+cd ai-course
+git clone (*\courserepo*) course
+cd course
+julia setup/setup_julia.jl
+\end{lstlisting}
+The script ends with \emph{``All good: Julia \ldots{} is ready for the course.''}
+It installs the packages in the table below, then the exact package versions of the
+hands-on project \cmd{DrivenSpin}, and runs that project's tests.
+
+Keep the folder \cmd{ai-course}: we start from it on the day, and update the course
+material with \cmd{git pull} inside \cmd{course}. Do not edit files inside
+\cmd{course}; in the hands-on you work on your own copy.
+
+\begin{warn}[Keep this Julia version until the course]
+Packages are compiled for one Julia version. If you update Julia (e.g.\ with
+\cmd{juliaup update}) after this step, everything is compiled again on the day.
+\end{warn}
+
+\textbf{If cloning fails} (and Section~\ref{sec:troubleshooting} does not help), still
+prepare the packages: start Julia by typing \cmd{julia} in a terminal, then paste the
+following at the \cmd{julia>} prompt, and send the clone error to \instructorcontact.
+\begin{lstlisting}[language={}]
+using Pkg
+Pkg.add(["DrWatson", "Revise"])
+Pkg.activate(temp=true)
+Pkg.add(["DrWatson", "QuantumOptics", "OrdinaryDiffEq",
+         "LsqFit", "CairoMakie", "JLD2"])
+Pkg.precompile()
+using DrWatson, QuantumOptics, OrdinaryDiffEq, LsqFit, CairoMakie, JLD2
+println("All packages loaded.")
+\end{lstlisting}
+Leave Julia with \cmd{exit()}.
+
+What the packages are for:
+\begin{center}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{@{}l X@{}}
+\toprule
+DrWatson        & Project structure, reproducible file names, saving results tagged with the Git commit. \\
+QuantumOptics   & Reference solver for spins and cavities; used as an independent check. \\
+OrdinaryDiffEq  & Time evolution (the ODE part of DifferentialEquations.jl, lighter to install). \\
+LsqFit          & Fitting synthetic ``experimental'' data. \\
+CairoMakie      & Plotting. \\
+JLD2            & File format DrWatson uses to save results. \\
+Revise          & Reloads your code automatically as you (or the agent) edit it. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\cmd{Test} and \cmd{LinearAlgebra} ship with Julia and need no installation.
+
+DrWatson and Revise go into your default environment, so they are always available.
+The other packages are downloaded into Julia's shared cache; your copy of the hands-on
+project reuses them, so you will not wait for compilation on the day.
+
+\subsection{AI agent: one-minute test}\label{sec:agent-test}
+Agents work inside a folder, so create an empty practice folder and start your agent
+there (from the terminal or its app, depending on the tool):
+\begin{lstlisting}
+mkdir ai-course-test
+cd ai-course-test
+\end{lstlisting}
+Log in if asked, then give it a first request:
+\begin{lstlisting}[language={}]
+Write a Julia script hello.jl that prints the Julia version, and run it.
+\end{lstlisting}
+The test passes if the agent creates \cmd{hello.jl} in that folder, runs it with
+\emph{your} Julia, and shows the version printed by \cmd{julia --version}. It will
+usually ask permission before creating the file and before running it; approve both.
+In the course the agent also runs Git, so give it a second request:
+\begin{lstlisting}[language={}]
+Make this folder a git repository and commit hello.jl. Then show me git log.
+\end{lstlisting}
+The log should show one commit with your name. You can delete the folder afterwards.
+
+% ===========================================================================
+\section{Final check}\label{sec:verify}
+
+In a \textbf{new} terminal, run each of these. Every line should print a version or
+``logged in'' and no error.
+\begin{lstlisting}
+git --version
+git config user.email
+gh auth status
+ssh -T git@github.com
+code --version
+julia --version
+julia -e "using DrWatson"
+cd ~/ai-course/course
+git status
+\end{lstlisting}
+\cmd{ssh -T} should greet you by your GitHub username (see Section~\ref{sec:ssh}).
+\cmd{julia -e "using DrWatson"} prints nothing when it works and an error when it does
+not. \cmd{git status} should say \emph{``On branch main. Your branch is up to date with
+`origin/main'.''}
+Then tick the list:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{@{}c X@{}}
+$\square$ & I have a GitHub account and \cmd{gh auth status} says I am logged in, with protocol \cmd{ssh}. \\
+$\square$ & \cmd{ssh -T git@github.com} answers ``Hi \textless username\textgreater! You've successfully authenticated\ldots''. \\
+$\square$ & \cmd{git config user.email} shows the email of my GitHub account. \\
+$\square$ & VS Code opens and has the Julia extension. \\
+$\square$ & The course repository is in \cmd{ai-course/course}, and \cmd{julia setup/setup\_julia.jl} finished with ``All good''. \\
+$\square$ & My AI agent starts in a folder, I am logged in, and it created, ran and committed \cmd{hello.jl}. \\
+\end{tabularx}
+\end{center}
+
+Bring your laptop \textbf{and its charger} on \coursedate.
+
+% ===========================================================================
+\section{Troubleshooting}\label{sec:troubleshooting}
+
+\begin{description}[style=nextline, leftmargin=0pt, itemsep=6pt]
+\item[``command not found'' / ``is not recognized'' right after installing]
+  Close \emph{all} terminal windows and open a new one. On Windows, if that fails,
+  sign out and back in. On macOS, check that the Homebrew ``Next steps'' commands were run.
+
+\item[Julia package installation stalls or fails with network errors]
+  Usually a proxy or firewall. Try from home or eduroam. If your institute requires a
+  proxy, set it before starting Julia (ask IT for the address):
+\begin{lstlisting}
+export HTTPS_PROXY=http://proxy.example.org:8080     # macOS / Linux
+$env:HTTPS_PROXY="http://proxy.example.org:8080"     # Windows PowerShell
+\end{lstlisting}
+  Then run the installation again; it resumes where it stopped.
+
+\item[Precompilation is very slow]
+  Expected on the first run, especially for CairoMakie and OrdinaryDiffEq. Keep the
+  laptop plugged in and awake. It only happens once.
+
+\item[The agent cannot find \cmd{julia} or \cmd{git}]
+  Start the agent from a \emph{new} terminal opened after installing everything, so it
+  inherits the updated \cmd{PATH}.
+
+\item[\cmd{ssh -T git@github.com} says ``Permission denied (publickey)'']
+  Your key is missing or not registered with GitHub. Run
+  \cmd{gh ssh-key list} to see the keys GitHub knows about. If the list is empty, run
+  \cmd{gh auth refresh -s admin:public\_key} and then
+  \cmd{gh ssh-key add \textasciitilde/.ssh/id\_ed25519.pub}.
+
+\item[\cmd{ssh -T} hangs or says ``Connection timed out'']
+  Many institute networks block SSH's usual port (22). GitHub also accepts SSH on
+  port 443. Add these lines to \cmd{\textasciitilde/.ssh/config} (create the file if needed;
+  on Windows it is \cmd{.ssh\textbackslash config} in your user folder):
+\begin{lstlisting}
+Host github.com
+  Hostname ssh.github.com
+  Port 443
+  User git
+\end{lstlisting}
+  and run \cmd{ssh -T git@github.com} again. If you already have a \cmd{Host github.com}
+  block (from the passphrase box), add the three lines to it.
+
+\item[\cmd{git clone} says ``Repository not found'' or ``Could not read from remote repository'']
+  Check the SSH connection first with \cmd{ssh -T git@github.com} (see the two items
+  above). If that works, check that you copied the address exactly.
+
+\item[\cmd{git push} asks for a username or password]
+  The repository was cloned with its HTTPS address. Switch it to SSH, from inside the
+  repository folder:
+\begin{lstlisting}
+git remote set-url origin git@github.com:<user>/<repo>.git
+\end{lstlisting}
+  and make SSH the default for the GitHub CLI: \cmd{gh config set git\_protocol ssh}.
+
+\item[University-managed laptop, no admin rights]
+  \cmd{juliaup} installs into your user folder and does not need admin rights. Git, VS Code and the GitHub CLI usually do; ask IT, or on Windows use
+  \cmd{winget install} with \cmd{--scope user} where available.
+\end{description}
+
+If you are stuck, send the \emph{exact} error message (a screenshot is fine) and your
+operating system to \instructorcontact.
+
+\end{document}
