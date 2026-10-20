@@ -20,10 +20,18 @@ together, $\Pe = \Omega^2/(\Omega^2 + \Delta^2/4)\,\sin^2(\sqrt{\Omega^2 + \Delt
 so the analytic test fails at every $\Delta$. Find the bug with \cmd{git diff}; undo it with
 \cmd{git restore .}.
 
-\begin{placeholder}[Placeholder: \texttt{exercises/planted\_bug.patch}]
-Quote the patch once D3 provides it (it must touch only the line of \texttt{hamiltonian},
-so it applies after stages 2--4).
-\end{placeholder}
+The patch, which touches only the line of \cmd{hamiltonian}, so that it still applies
+after participants have added stages 2--4:
+\lstinputlisting[title={\texttt{DrivenSpin/exercises/planted\_bug.patch}}]{\ds/exercises/planted_bug.patch}
+Participants apply it from inside their own \cmd{DrivenSpin/},
+\begin{lstlisting}
+git apply ../course/DrivenSpin/exercises/planted_bug.patch
+\end{lstlisting}
+or with \cmd{git apply -3} if their agent edited the surrounding lines. Before making
+the plot, its exercise sheet (\cmd{planted\_bug.md}) has them delete the saved results
+with \cmd{rm -r data/sims/rabi}: \cmd{produce\_or\_load} recognises results by their parameters, not by the code that
+made them (Section~\ref{sec:structure}), so without that step the script would load the old,
+correct curves. This is itself a lesson about cached results.
 
 \subsection{The bug your tests cannot see}
 
@@ -32,14 +40,20 @@ Flip the sign of the Hamiltonian term in Eq.~\eqref{eq:lindblad}: $-i[H, \rho] \
 coherent part. All populations in the course are unchanged, because
 \begin{itemize}
   \item the Rabi formula~\eqref{eq:rabi} is even in $\Omega$ and in $\Delta$;
-  \item the Ramsey and echo results~\eqref{eq:ramsey} depend on $\cos(\Delta\tau)$ only;
+  \item the Ramsey and echo results, Eqs.~\eqref{eq:ramsey} and~\eqref{eq:echo}, depend
+        on $\Delta$ only through $\cos(\Delta\tau)$ or not at all;
   \item the dissipators do not involve $H$.
 \end{itemize}
-So every test of stages 1--4 passes. Only phases change sign: at $\Delta = 0$,
+So every test of stages 1--5 passes, including the comparison of populations with
+QuantumOptics.jl. Only phases change sign: at $\Delta = 0$,
 $\langle\sigma_y\rangle(t) = \sin(\Omega t)$ (Section~\ref{sec:stage1}) becomes
 $-\sin(\Omega t)$. The lesson on the slide: your tests decide which bugs you can see, so
 test every quantity you will publish. A single test of $\langle\sigma_y\rangle$, or of
-the sign of a Ramsey phase $\varphi$ with a known detuning, closes this gap.
+the sign of a Ramsey phase $\varphi$ with a known detuning, closes this gap. For the
+demo, the reference solutions (kept with the instructor until after the course) include a
+patch \cmd{exercises/sign\_bug.patch} that flips the sign in \cmd{lindblad}, and a final
+testset ``Lindblad: phase of the coherence'' that checks
+$\langle\sigma_y\rangle(t) = \sin(\Omega t)$ at $\Delta = 0$ and catches it.
 
 \subsection{Rogues' gallery}
 

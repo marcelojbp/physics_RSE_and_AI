@@ -80,11 +80,14 @@ $\langle\sigma_y\rangle(t) = \sin(\Omega t)$. This sign is the one that flips in
 \textbf{Stage-1 tests} (in the starting point): Eq.~\eqref{eq:rabi} at many times; the
 $\pi$-pulse inverts at $\Delta = 0$; unitarity $U^\dagger U = 1$ and norm conservation.
 
-\begin{placeholder}[Placeholder: stage-1 code of \texttt{DrivenSpin}]
-Quote \texttt{hamiltonian(Δ, Ω)}, \texttt{excited\_population(H, t)} and
-\texttt{excited\_population(ρ)} from \texttt{DrivenSpin/src/DrivenSpin.jl} once D3 exists
-(names as agreed in PLAN.md §11).
-\end{placeholder}
+The whole stage-1 library, the participants' starting point:
+\lstinputlisting[title={\texttt{DrivenSpin/src/DrivenSpin.jl}}]{\ds/src/DrivenSpin.jl}
+The matrices are written out in the basis $(\ket{e}, \ket{g})$, so the basis order is
+visible in the code and fixed by the test $\sigma_z\ket{e} = +\ket{e}$. The propagator is
+the matrix exponential, exact for a time-independent $H$; Eq.~\eqref{eq:rabi} is
+therefore tested against an exact computation, and the tolerance $10^{-10}$ in the test
+only absorbs rounding. The second method of \cmd{excited\_population} takes a density
+matrix: stage~2 needs it, and the basis order makes it the $(1,1)$ element.
 
 \subsection{Stage 2: decoherence}\label{sec:lindblad}
 
@@ -127,7 +130,13 @@ Since $\Gamma_\phi \geq 0$, $T_2 \leq 2T_1$: the coherence decays at least half 
 as the population, because each decay event also destroys the phase. A parameter set with
 $T_2 > 2T_1$ would need $T_\phi < 0$, which violates positivity; hence the specification
 that \cmd{lindblad} rejects it with an \cmd{ArgumentError}. $T_1 = T_2 = \infty$ switches
-dissipation off and must reproduce stage~1.
+dissipation off and must reproduce stage~1. The boundary $T_2 = 2T_1$ is allowed
+($\Gamma_\phi = 0$), but computing $\Gamma_\phi = 1/T_2 - 1/(2T_1)$ in floating point can
+give a tiny negative number there; an implementation has to accept it.
+
+The exercise sheet \cmd{exercises/stage2.md} fixes the interface:
+\cmd{lindblad(H, ρ0, ts; T1, T2, dt)} returns the density matrices at the times \cmd{ts},
+integrating with fixed-step RK4 of step at most \cmd{dt}.
 
 \textbf{Stage-2 tests} (stage card): at all times $\tr\rho = 1$, $\rho = \rho^\dagger$,
 eigenvalues $\geq 0$; $\Omega = 0$ from $\ket{e}$: $\Pe(t) = \ee^{-t/T_1}$; $\Omega =
@@ -173,11 +182,22 @@ in the second, whatever $\delta$ is. With ideal pulses and no decoherence the se
 returns $\ket{g}$ for every static $\delta$, $\Pe = 0$ (the total rotation is $2\pi$
 about $x$). Averaging over $\delta$ therefore changes nothing: the echo removes static
 dephasing and leaves only the irreversible part, $T_2$. Fluctuations of $\delta$ during
-the sequence are not refocused, which is why echo decay measures $T_2$.
+the sequence are not refocused, which is why echo decay measures $T_2$. With Markovian
+dephasing (Eq.~\eqref{eq:lindblad}, $T_1 \to \infty$) the coherence still decays during
+both halves, and the echo gives
+\begin{equation}\label{eq:echo}
+  \Pe(\tau) = \tfrac12\left[1 - \ee^{-\tau/T_2}\right]
+\end{equation}
+for every static $\delta$; at $\tau = 0$ the sequence is a $2\pi$ rotation and $\Pe = 0$.
 
-\textbf{Stage-3 tests} (stage card): fringes at angular frequency $\Delta$ under the
-envelope $\ee^{-\tau/T_2}$; echo independent of a static $\delta$; averaged over random
-static $\delta$, Ramsey decays and echo does not.
+\textbf{Stage-3 tests} (stage card and \cmd{exercises/stage3.md}): fringes at angular
+frequency $\Delta$ under the envelope $\ee^{-\tau/T_2}$; echo independent of a static
+$\delta$; averaged over random static $\delta$, Ramsey decays and echo does not. The last
+test needs numbers: the reference tests draw 200 detunings with $s_\delta = 2$\,rad/\textmu s
+and a fixed seed, and compare the averaged Ramsey signal at $\Delta = 0$ with
+$\frac12[1 + \ee^{-s_\delta^2\tau^2/2}]$ within $0.05$, which is several times the
+sampling error of 200 draws. Two cheap extra tests: $R(\pi)\ket{g} = -i\ket{e}$, and
+$R(2\pi) = -1$, the sign of a spinor under a full rotation.
 
 \subsection{Stage 4: a synthetic experiment and its fit}\label{sec:stage4}
 
@@ -198,10 +218,15 @@ squared residuals:
 fit = curve_fit(model, τ, Phat, w, p0)   # w = 1 ./ variances (inverse variance)
 coef(fit), stderror(fit)               # best-fit parameters and standard errors
 \end{lstlisting}
-The weights are the inverse variances; estimated from the data, $\hat P_k(1 -
-\hat P_k)/N$ vanishes at $\hat P_k = 0$ or $1$, so floor it (or use the model value). The
-starting values \cmd{p0} matter: the fit has many local minima in $\Delta$; take $\Delta$
-from the peak of a Fourier transform of the data, $T_2$ from the visible decay.
+The weights are the inverse variances, and they should come from the model, not from
+the data. The variance estimated from the data, $\hat P_k(1 - \hat P_k)/N$, vanishes at
+$\hat P_k = 0$ or $1$, and in general gives too much weight to points that happen to
+fluctuate towards $0$ or $1$, which biases the fit. A robust recipe: fit once with
+data-based weights, with $\hat P_k$ clamped away from $0$ and $1$ (for example to
+$[1/(2N), 1 - 1/(2N)]$), then refit once or twice with variances computed from the fitted
+model. The starting values \cmd{p0} matter too: the fit has many local minima in $\Delta$;
+take $\Delta$ from the peak of the periodogram (the squared Fourier transform) of the data,
+and $T_2$ of the order of the time span.
 
 \textbf{Why four times the shots halves the errors.} Each $\hat P_k$ has standard deviation
 $\propto 1/\sqrt{N}$, and the standard errors $\sigma$ of the fitted parameters scale
@@ -212,10 +237,12 @@ and $\Delta$ within $3\sigma$ of the true values; four times more shots give err
 about half as large; the script saves the fit with \cmd{produce\_or\_load}, so the file
 carries the commit.
 
-\begin{placeholder}[Placeholder: stage-4 reference solution]
-Quote the fit function and its injection--recovery test once D3 has them (on the
-\texttt{solutions} branch, not in the participants' starting point).
-\end{placeholder}
+The reference tests use $\Delta = 2\pi$\,rad/\textmu s, $T_2 = 1.5\,\mu$s, 81 delays
+between $0$ and $4\,\mu$s and $N = 200$ shots; with model-based weights, the pull test of
+Section~\ref{sec:verification} passes over 200 seeds, and the errors for $N = 800$ are half
+those for $N = 200$ within $15\,\%$. The exercise also asks for a script
+\cmd{scripts/ramsey\_fit.jl} that saves the fit with \cmd{produce\_or\_load}, so that the
+result file records the commit.
 
 \subsection{Stage 5 (stretch): the Jaynes--Cummings model}\label{sec:stage5}
 
@@ -247,7 +274,10 @@ conservation of $N_{\mathrm{exc}}$ makes the truncated dynamics \emph{exact} onc
 includes $n + 1$ photons, so convergence is trivial. A meaningful test starts from a coherent state
 of the field, whose photon-number distribution has a tail; then the populations
 (including the collapse and revival of the Rabi oscillations) converge only as the cutoff
-grows.
+grows. In the reference tests, with $\alpha = 2$ (mean photon number $|\alpha|^2 = 4$)
+and times up to $20\,\mu$s at $g = 0.3$\,rad/\textmu s, cutoffs of 25 and 40 photons agree to $10^{-8}$, while a cutoff of 5 differs by more than
+$10^{-2}$. The coherent state is truncated without renormalising, so that the lost weight
+shows up as an error.
 
 \subsection{The hands-on in practice}\label{sec:handson}
 
@@ -255,11 +285,20 @@ Pairs, one person new to git typing the git commands, swapping the keyboard afte
 stage. Getting started: copy \cmd{DrivenSpin/} from the course repository into a new
 folder, \cmd{git init}, commit, and run the tests, which pass at stage~1.
 
-\begin{placeholder}[Placeholder: getting-started commands]
-Final commands depend on PLAN.md §11 (the course repository is already cloned as
-\texttt{\textasciitilde/ai-course/course} during setup) and on the repository URL.
-Copy them from the final slide ``Getting started'' (\texttt{slides/sections/07\_handson.tex}).
-\end{placeholder}
+The commands, from \cmd{DrivenSpin/exercises/README.md}; the installation guide has
+already cloned the course repository as \cmd{\textasciitilde/ai-course/course}:
+\begin{lstlisting}
+cd ~/ai-course
+cp -r course/DrivenSpin DrivenSpin
+cd DrivenSpin
+git init
+git add .
+git commit -m "Start from stage 1"
+julia --project -e 'using Pkg; Pkg.instantiate(); Pkg.test()'
+\end{lstlisting}
+Start the agent \emph{inside} \cmd{DrivenSpin/}, so that it reads \cmd{AGENTS.md}. The
+exercise sheets in \cmd{exercises/}, one per stage, contain the specification of
+each stage: the function to write, the tests, and for stage~4 the script.
 
 Each stage in four steps:
 \begin{enumerate}

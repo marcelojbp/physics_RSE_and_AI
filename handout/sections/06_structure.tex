@@ -42,24 +42,8 @@ own; in the course, \cmd{DrivenSpin/} always means that code repository.
 
 \subsection{Scripts and \texttt{produce\_or\_load}}
 
-The slide's script (it becomes \cmd{scripts/rabi.jl} in \cmd{DrivenSpin/}):
-\begin{lstlisting}
-using DrWatson
-@quickactivate "DrivenSpin"          # this project's environment, from any folder
-using DrivenSpin                     # the module in src/
-
-for c in dict_list(Dict(:Δ => [0.0, 2π], :Ω => 2π))   # rad/μs; one run per Δ
-    produce_or_load(c, datadir("sims", "rabi")) do c
-        H = hamiltonian(c[:Δ], c[:Ω])
-        t = range(0, 3, length = 301)                  # μs
-        Dict("t" => t, "Pe" => excited_population.(Ref(H), t))
-    end
-end
-\end{lstlisting}
-\begin{placeholder}[Placeholder: \texttt{DrivenSpin/scripts/rabi.jl}]
-Replace the listing above by the real file once D3 exists (it should be identical; the
-slide was written first).
-\end{placeholder}
+The script of the hands-on project; its first eleven lines are the slide:
+\lstinputlisting[title={\texttt{DrivenSpin/scripts/rabi.jl}}]{\ds/scripts/rabi.jl}
 
 Line by line:
 \begin{itemize}
@@ -101,22 +85,13 @@ with them; a \cmd{Manifest.toml} in a diff you did not expect needs an explanati
 
 \subsection{Tests}
 
-\begin{lstlisting}
-using DrivenSpin, Test
-
-@testset "Rabi" begin
-    Δ, Ω = 0.3, 2π                                  # rad/μs
-    ΩR = sqrt(Ω^2 + Δ^2)
-    H = hamiltonian(Δ, Ω)
-    for t in range(0, 3, length = 31)               # μs
-        @test excited_population(H, t) ≈ Ω^2 / ΩR^2 * sin(ΩR * t / 2)^2 atol = 1e-10
-    end
-    @test excited_population(hamiltonian(0.0, Ω), π / Ω) ≈ 1    # π-pulse
-end
-\end{lstlisting}
-\begin{placeholder}[Placeholder: \texttt{DrivenSpin/test/runtests.jl}]
-Replace by the stage-1 tests of D3 once they exist.
-\end{placeholder}
+The stage-1 tests of the hands-on project; the first testset is the slide:
+\lstinputlisting[title={\texttt{DrivenSpin/test/runtests.jl}}]{\ds/test/runtests.jl}
+The other three testsets check structure, not a formula: the Hamiltonian is Hermitian,
+traceless, has eigenvalues $\pm\OmR/2$ and the sign convention $\sigma_z\ket{e} =
++\ket{e}$; the propagator is unitary; and the two methods of \cmd{excited\_population},
+for a time and for a density matrix, agree. The last one ties stage~1 to stage~2, where
+populations come from density matrices.
 
 \cmd{@testset} groups tests under a name that says which physical claim they check;
 \cmd{@test} records a pass or a failure without stopping \rf{julia-test}. The operator

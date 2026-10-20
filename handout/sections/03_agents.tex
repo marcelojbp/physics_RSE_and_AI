@@ -34,8 +34,8 @@ that works, applies to how you use agents too.
 
 \subsection{Why the closed loop matters}
 
-The transcript on the slide (illustrative until \cmd{DrivenSpin/} exists) shows the point
-of the block. The agent runs the tests, reads a failure (\lstinline|0.0 ≈ 1.0|), reads the
+The transcript on the slide is illustrative (the real test is the $\pi$-pulse line of the
+\cmd{"Rabi"} testset, Section~\ref{sec:structure}), and it shows the point of the block. The agent runs the tests, reads a failure (\lstinline|0.0 ≈ 1.0|), reads the
 source, finds $\Omega$ where $\Omega/2$ belongs, edits, and runs the tests again. It
 found the factor of two \emph{because a test encoded the physics}: a resonant
 $\pi$-pulse must invert the spin. With the bug, the population at $t = \pi/\Omega$ is

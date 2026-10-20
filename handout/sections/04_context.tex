@@ -83,13 +83,14 @@ the code, long tutorials, information that changes often. The file is in every c
 so every line costs tokens in every step; a long file also dilutes the rules that matter
 \rf{cc-best}.
 
-\begin{placeholder}[Placeholder: \texttt{DrivenSpin/AGENTS.md}]
-Quote the real file here once D3 exists. The slide shows an illustrative excerpt:
-conventions ($\hbar = 1$, \textmu s, rad/\textmu s, basis $(\ket{e}, \ket{g})$,
-$H = (\Delta/2)\sigma_z + (\Omega/2)\sigma_x$), the test command
-\verb|julia --project -e 'using Pkg; Pkg.test()'|, ``tests first'', ``never modify
-\texttt{test/} while implementing'', ``never write to \texttt{data/exp\_raw}''.
-\end{placeholder}
+The file of the hands-on project, in full (the slide shows its first two blocks):
+\lstinputlisting[title={\texttt{DrivenSpin/AGENTS.md}}]{\ds/AGENTS.md}
+Three design choices are worth pointing out. The short rules come first and the details
+after, so that the rules a reader (or a model) must not miss stand at the top. The rules
+on \cmd{test/} encode the ``tests first'' workflow of Section~\ref{sec:verification}. The
+rule against \cmd{Pkg.add} and \cmd{Pkg.update} protects the pinned environment of
+Section~\ref{sec:structure}. \cmd{CLAUDE.md} contains the single line \cmd{@AGENTS.md},
+which tells Claude Code to read \cmd{AGENTS.md}.
 
 \subsection{Skills}
 

@@ -56,11 +56,16 @@ then saturates at a constant), and a result reported before it has converged. Th
 idea applies to any cutoff: grid size, Fock-space truncation, number of Monte Carlo
 samples.
 
-\begin{placeholder}[Placeholder: convergence test of \texttt{DrivenSpin}]
-Quote the convergence test from \texttt{DrivenSpin/test/runtests.jl} once it exists. The
-slide's version:
-\lstinline|@test log2(err(0.02) / err(0.01)) ≈ 4 atol = 0.2|.
-\end{placeholder}
+The test, as the stage-2 exercise sheet \cmd{exercises/stage2.md} gives it (with
+$\Omega = 0$, start in $\ket{e}$, $T_1 = 1\,\mu$s and $T = 2\,\mu$s):
+\begin{lstlisting}
+ρT(dt) = last(lindblad(H, ρ0, [T]; T1, T2, dt))           # fixed-step RK4
+err(dt) = abs(excited_population(ρT(dt)) - exp(-T / T1))  # free decay from |e⟩
+@test log2(err(0.02) / err(0.01)) ≈ 4 atol = 0.2          # RK4: p = 4
+\end{lstlisting}
+The reference solution passes it. The step sizes matter: the error is
+$2 \times 10^{-11}$ at $\delta t = 0.01\,\mu$s, still about three orders of magnitude above
+the accumulated rounding error; much smaller steps would measure rounding, not the method.
 
 \textbf{Independent route.} Solve the same problem with a different method written by
 someone else, and compare. For the driven spin: the hand-written Lindblad solver against
@@ -90,7 +95,9 @@ distributed as a Gaussian of zero mean and unit width. A mean away from zero is 
 a width above one means the error bars are too small. This is the test that catches an
 error-bar computation that ignores correlations, a noise model that does not match the
 data, or a fit that converges to a wrong local minimum. Stage~4 of the hands-on
-(Section~\ref{sec:stage4}) is an injection--recovery test.
+(Section~\ref{sec:stage4}) is an injection--recovery test. The reference solution adds the
+many-seed version as a test: over 200 seeds, the pulls of $T_2$ must have
+$|\text{mean}| < 0.25$ and a standard deviation between $0.8$ and $1.2$.
 
 \subsection{Tests first}
 
