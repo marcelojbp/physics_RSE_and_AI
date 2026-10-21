@@ -38,6 +38,7 @@ DrivenSpin/
 |-- Manifest.toml        # exact versions
 |-- AGENTS.md            # conventions and rules for AI agents (and for you)
 |-- CLAUDE.md            # points Claude Code to AGENTS.md
+|-- .claude/skills/      # procedures loaded on demand (fit-ramsey)
 `-- .github/workflows/CI.yml   # runs the tests on GitHub on every push
 ```
 

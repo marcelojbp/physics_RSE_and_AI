@@ -100,9 +100,10 @@ files. At the start of a session only the names and descriptions enter the conte
 task matches a description, the agent reads the full file, and it opens further files
 only when a step needs them \rf{skills}. This \emph{progressive disclosure} lets a lab keep
 many procedures (fit Ramsey data, calibrate a pulse, format a figure) at the cost of one
-line each. The slide's \cmd{fit-ramsey} skill is an example of the form, not a file in the
-repository. Instruction files and skills are \emph{procedural memory written to disk}:
-the model does not learn, but the folder does.
+line each. The slide's \cmd{fit-ramsey} skill is in the repository, in
+\cmd{DrivenSpin/.claude/skills/fit-ramsey/}, where Claude Code finds it. Instruction files
+and skills are \emph{procedural memory written to disk}: the model does not learn, but the
+folder does.
 
 \subsection{A prompt is a specification}
 
