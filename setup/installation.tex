@@ -15,8 +15,7 @@
 
 % ---------------------------------------------------------------------------
 % Edit these before sending the document out.
-\newcommand{\coursedate}{\textbf{[DATE]}}
-\newcommand{\instructorcontact}{\textbf{[NAME, EMAIL]}}
+\newcommand{\coursedate}{\textbf{21.10.2026}}
 \newcommand{\courserepo}{\detokenize{git@github.com:marcelojbp/physics_RSE_and_AI.git}}  % SSH address
 % ---------------------------------------------------------------------------
 
@@ -53,8 +52,8 @@
 \begin{note}[Why this matters]
 The hands-on session lasts one hour. If we spend it installing software, we lose it.
 Plan for \textbf{45--60 minutes}, most of it unattended while Julia packages
-download and compile. If anything fails, send the error message to
-\instructorcontact{} before the course; do not wait until the day.
+download and compile. If anything fails, find me in the corridor
+before the course; do not wait until the day.
 \end{note}
 
 \tableofcontents
@@ -391,7 +390,7 @@ Packages are compiled for one Julia version. If you update Julia (e.g.\ with
 
 \textbf{If cloning fails} (and Section~\ref{sec:troubleshooting} does not help), still
 prepare the packages: start Julia by typing \cmd{julia} in a terminal, then paste the
-following at the \cmd{julia>} prompt, and send the clone error to \instructorcontact.
+following at the \cmd{julia>} prompt, and tell me about the clone error before the course.
 \begin{lstlisting}[language={}]
 using Pkg
 Pkg.add(["DrWatson", "Revise"])
@@ -542,7 +541,7 @@ git remote set-url origin git@github.com:<user>/<repo>.git
   \cmd{winget install} with \cmd{--scope user} where available.
 \end{description}
 
-If you are stuck, send the \emph{exact} error message (a screenshot is fine) and your
-operating system to \instructorcontact.
+If you are stuck, note the \emph{exact} error message and your operating system, and come
+to me before the course.
 
 \end{document}
